@@ -130,10 +130,7 @@ const PatientsTable = ({ setEditingPatient }) => {
                 <td className="text-end">
                   <button className="btn btn-primary btn-sm ms-2" onClick={() => editPatient(patient)}>تعديل</button>
                   <button className="btn btn-danger btn-sm ms-2" onClick={() => deletePatient(patient.id)}>حذف</button>
-                  <button className="btn btn-secondary btn-sm">الملف الشخصي</button>
-                  <Link to={`/profile/${patient.id}`} className="btn btn-primary">
-  الملف الشخصي
-</Link>
+                  <Link to={`/profile/${patient.id}`} className="btn btn-primary">الملف الشخصي</Link>
                 </td>
               </tr>
             ))}
