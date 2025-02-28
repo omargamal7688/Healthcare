@@ -55,5 +55,10 @@ public class PatientService {
         patientRepository.deleteById(id);
     }
 
-
+    public List<Patient> searchPatientByMobile(String mobile) {
+        return patientRepository.findByMobileContaining(mobile);
+    }
+    public Optional<Patient> getPatientById(Long id) {
+        return patientRepository.findById(id);
+    }
 }

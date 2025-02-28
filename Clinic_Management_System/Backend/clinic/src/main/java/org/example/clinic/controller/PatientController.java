@@ -45,12 +45,21 @@ public class PatientController {
  public ResponseEntity<String> deletePatient(@PathVariable Long id) {
   Optional<Patient> patient = patientService.findById(id);
   if (patient.isPresent()) {
-   patientService.deleteById(id);
-   return ResponseEntity.ok("Patient deleted successfully.");
-  } else {
-   return ResponseEntity.notFound().build();
-  }
+   patientService.deleteById(id);return ResponseEntity.ok("Patient deleted successfully.");} else {return ResponseEntity.notFound().build();}}
+
+
+
+
+ @GetMapping("/search")
+ public List<Patient> searchPatientByMobile(@RequestParam String mobile) {
+  return patientService.searchPatientByMobile(mobile);
  }
+
+ @GetMapping("/{id}")
+ public Optional<Patient> getPatientById(@PathVariable Long id) {
+  return patientService.getPatientById(id);
+ }
+
 
 }
 
