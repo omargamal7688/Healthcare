@@ -7,7 +7,9 @@ const PatientsTable = ({ setEditingPatient }) => {
   const [patients, setPatients] = useState([]);
   const [searchMobile, setSearchMobile] = useState("");
   const [message, setMessage] = useState("");
-  const [error, setError] = useState(""); // Error message for modal
+  const [fetchError, setFetchError] = useState("");
+  const [searchError, setSearchError] = useState("");
+  const [deletePatientId, setDeletePatientId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,20 +20,25 @@ const PatientsTable = ({ setEditingPatient }) => {
     axios.get("http://localhost:8080/api/patients")
       .then((response) => setPatients(response.data))
       .catch(() => {
-        setError("خطأ في جلب البيانات");
-        showModal();
+        setFetchError("تاكد من الاتصال بالخادم");
       });
   };
 
-  const deletePatient = (id) => {
-    if (window.confirm("هل أنت متأكد من حذف هذا المريض؟")) {
-      axios.delete(`http://localhost:8080/api/patients/${id}`)
+  const confirmDelete = (id) => {
+    setDeletePatientId(id);
+    const modal = new window.bootstrap.Modal(document.getElementById("deleteModal"));
+    modal.show();
+  };
+
+  const deletePatient = () => {
+    if (deletePatientId) {
+      axios.delete(`http://localhost:8080/api/patients/${deletePatientId}`)
         .then(() => {
-          setPatients(patients.filter((p) => p.id !== id));
+          setPatients(patients.filter((p) => p.id !== deletePatientId));
           setMessage("تم حذف المريض بنجاح");
         })
         .catch(() => {
-          setError("فشل في حذف المريض");
+          setSearchError("فشل في حذف المريض");
           showModal();
         });
     }
@@ -44,41 +51,31 @@ const PatientsTable = ({ setEditingPatient }) => {
 
   const searchPatient = (e) => {
     e.preventDefault();
-
-    // Validate mobile input
     if (!searchMobile) {
-        setError("يجب إدخال رقم الهاتف للبحث");
+        setSearchError("يجب إدخال رقم الهاتف للبحث");
         showModal();
         return;
     }
     if (!/^(010|011|012|015)\d{8}$/.test(searchMobile)) {
-        setError("يجب أن يبدأ الرقم بـ 010 أو 011 أو 012 أو 015 وأن يتكون من 11 رقمًا");
+        setSearchError("يجب أن يبدأ الرقم بـ 010 أو 011 أو 012 أو 015 وأن يتكون من 11 رقمًا");
         showModal();
         return;
     }
-
     axios.get(`http://localhost:8080/api/patients/search?mobile=${searchMobile}`)
         .then((response) => {
             if (response.data.length === 0) {
-                setError("لم يتم العثور على المريض");
+                setSearchError("لم يتم العثور على المريض");
                 showModal();
             } else {
                 setPatients(response.data);
             }
         })
-        .catch((error) => {
-            if (error.message.includes("Network Error") || error.code === "ECONNREFUSED") {
-                setError("تأكد من الاتصال بالخادم");
-            } else {
-                setError("حدث خطأ أثناء البحث");
-            }
+        .catch(() => {
+            setSearchError("حدث خطأ أثناء البحث");
             showModal();
         });
-};
+  };
 
-
-
-  // Function to show the Bootstrap modal
   const showModal = () => {
     const modal = new window.bootstrap.Modal(document.getElementById("errorModal"));
     modal.show();
@@ -90,10 +87,11 @@ const PatientsTable = ({ setEditingPatient }) => {
       <br />
       <h1 className="mt-4 text-end">قائمة المرضى</h1>
 
-      {/* Success Message */}
+     
+
+      {fetchError && <div className="alert alert-danger text-end">{fetchError}</div>}
       {message && <div className="alert alert-success text-end">{message}</div>}
 
-      {/* Search Form */}
       <form onSubmit={searchPatient} className="row g-3 mb-4">
         <div className="col-md-4">
           <input
@@ -110,7 +108,6 @@ const PatientsTable = ({ setEditingPatient }) => {
         </div>
       </form>
 
-      {/* Patients Table */}
       <div className="table-responsive">
         <table className="table table-striped mt-3 text-end">
           <thead className="table-dark">
@@ -122,30 +119,48 @@ const PatientsTable = ({ setEditingPatient }) => {
             </tr>
           </thead>
           <tbody>
-            {patients.map((patient) => (
-              <tr key={patient.id}>
-                <td className="text-end">{patient.id}</td>
-                <td className="text-end">{patient.name}</td>
-                <td className="text-end">{patient.mobile}</td>
-                <td className="text-end">
-                  <button className="btn btn-primary btn-sm ms-2" onClick={() => editPatient(patient)}>تعديل</button>
-                  <button className="btn btn-danger btn-sm ms-2" onClick={() => deletePatient(patient.id)}>حذف</button>
-                  <Link to={`/profile/${patient.id}`} className="btn btn-primary">الملف الشخصي</Link>
-                </td>
+            {patients.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="text-center">لا يوجد أي مريض</td>
               </tr>
-            ))}
+            ) : (
+              patients.map((patient) => (
+                <tr key={patient.id}>
+                  <td className="text-end">{patient.id}</td>
+                  <td className="text-end">{patient.name}</td>
+                  <td className="text-end">{patient.mobile}</td>
+                  <td className="text-end">
+                    <button className="btn btn-primary btn-sm ms-2" onClick={() => editPatient(patient)}>تعديل</button>
+                    <button className="btn btn-danger btn-sm ms-2" onClick={() => confirmDelete(patient.id)}>حذف</button>
+                    <Link to={`/profile/${patient.id}`} className="btn btn-primary">الملف الشخصي</Link>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
+        <br></br>
+        <button className="btn btn-success mb-3" onClick={() => navigate("/patient-form")}>
+        أضف مريض جديد
+      </button>
       </div>
 
-      {/* Add New Patient Button */}
-      <div className="d-flex justify-content-end mt-2">
-        <button className="btn btn-primary" onClick={() => navigate("/patient-form")}>
-          إضافة مريض جديد
-        </button>
+      <div className="modal fade" id="deleteModal" tabIndex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-5" id="deleteModalLabel">تأكيد الحذف</h1>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">هل أنت متأكد من حذف هذا المريض؟</div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+              <button type="button" className="btn btn-danger" data-bs-dismiss="modal" onClick={deletePatient}>حذف</button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Bootstrap Modal for Error Handling */}
       <div className="modal fade" id="errorModal" tabIndex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
@@ -153,7 +168,7 @@ const PatientsTable = ({ setEditingPatient }) => {
               <h1 className="modal-title fs-5" id="errorModalLabel">خطأ</h1>
               <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div className="modal-body">{error}</div>
+            <div className="modal-body">{searchError}</div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
             </div>

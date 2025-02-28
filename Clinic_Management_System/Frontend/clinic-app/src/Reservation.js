@@ -6,6 +6,7 @@ const Reservation = () => {
   const [reservations, setReservations] = useState([]);
   const [error, setError] = useState(""); 
   const navigate = useNavigate();
+  let modalInstance = null;
 
   useEffect(() => {
     fetchReservations();
@@ -15,21 +16,39 @@ const Reservation = () => {
     axios.get("http://localhost:8080/api/reservations/")
       .then((response) => setReservations(response.data))
       .catch(() => {
-        setError("خطأ في جلب البيانات");
+        setError("تأكد من الاتصال بالخادم");
         showModal();
       });
   };
 
   const showModal = () => {
-    const modal = new window.bootstrap.Modal(document.getElementById("errorModal"));
+    const modal = new window.bootstrap.Modal(document.getElementById("errorModal"), {
+      backdrop: "static",
+      keyboard: false,
+    });
     modal.show();
+    modalInstance = modal;
+  };
+
+  const closeModal = () => {
+    if (modalInstance) {
+      modalInstance.hide(); 
+      setTimeout(() => {
+        document.body.classList.remove("modal-open"); 
+        const backdrop = document.querySelector(".modal-backdrop");
+        if (backdrop) {
+          backdrop.remove(); 
+        }
+      }, 200);
+    }
+    setError(""); 
   };
 
   return (
     <div className="container mt-4" dir="rtl">
-        <br>
-        </br>
-        <br></br>
+      <br>
+      </br>
+      <br></br>
       <h1 className="mt-4 text-end">قائمة الحجوزات</h1>
 
       {error && <div className="alert alert-danger text-end">{error}</div>}
@@ -43,7 +62,7 @@ const Reservation = () => {
               <th className="text-end">اليوم</th>
               <th className="text-end">اسم العيادة</th>
               <th className="text-end">النوع</th>
-              <th className="text-end">الاجراءات</th>
+              <th className="text-end">الإجراءات</th>
             </tr>
           </thead>
           <tbody>
@@ -52,8 +71,8 @@ const Reservation = () => {
                 <tr key={reservation.id}>
                   <td>{reservation.turn}</td>
                   <td>{reservation.date}</td>
-                  <td>{reservation.dayOfWeek}</td> 
-                  <td>{reservation.clinicName}</td> 
+                  <td>{reservation.dayOfWeek}</td>
+                  <td>{reservation.clinicName}</td>
                   <td>{reservation.type}</td>
                   <td>
                     <button className="btn btn-primary btn-sm ms-2">تعديل</button>
@@ -77,17 +96,7 @@ const Reservation = () => {
       </div>
 
       {/* Bootstrap Modal for Errors */}
-      <div className="modal fade" id="errorModal" tabIndex="-1" aria-hidden="true">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">خطأ</h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div className="modal-body">{error}</div>
-          </div>
-        </div>
-      </div>
+      
     </div>
   );
 };

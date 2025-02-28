@@ -33,7 +33,7 @@ const PatientProfile = () => {
         </div>
 
         {/* Main Content */}
-        <div className="col-lg-9">
+        <div className="col-lg-10">
           <h1 className="mt-4 text-primary">الملف المرضي</h1>
 
           {/* Tracking Bar */}
