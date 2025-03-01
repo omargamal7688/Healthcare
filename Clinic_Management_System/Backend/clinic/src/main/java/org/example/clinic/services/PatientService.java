@@ -3,7 +3,9 @@ package org.example.clinic.services;
 import org.example.clinic.model.Patient;
 import org.example.clinic.repo.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,18 +29,22 @@ public class PatientService {
 
     public Patient saveOrUpdatePatient(Patient patient) {
         if (patient.getId() == null || patient.getId() == 0) {
-            // Create a new patient
+            // Create new patient - Check if mobile already exists
+            if (patientRepository.existsByMobile(patient.getMobile())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ A patient with mobile " + patient.getMobile() + " already exists.");
+            }
             return patientRepository.save(patient);
         } else {
-            // Update an existing patient
+            // Update existing patient
             return patientRepository.findById(patient.getId()).map(existingPatient -> {
+                if (!existingPatient.getMobile().equals(patient.getMobile()) &&
+                        patientRepository.existsByMobile(patient.getMobile())) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ A patient with mobile " + patient.getMobile() + " already exists.");
+                }
                 existingPatient.setName(patient.getName());
                 existingPatient.setMobile(patient.getMobile());
                 return patientRepository.save(existingPatient);
-            }).orElseGet(() -> {
-                // If ID is not found, treat it as a new patient
-                return patientRepository.save(patient);
-            });
+            }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "❌ Patient not found with ID " + patient.getId()));
         }
     }
 

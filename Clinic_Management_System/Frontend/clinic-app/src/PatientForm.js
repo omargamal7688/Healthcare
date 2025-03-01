@@ -36,20 +36,30 @@ const PatientForm = ({ editingPatient, setEditingPatient }) => {
 
   const savePatient = () => {
     if (!validateForm()) return;
-
+  
     const patientData = { id: editingPatient?.id, name, mobile };
-
+  
     axios.post("http://localhost:8080/api/patients", patientData)
       .then(() => {
         setEditingPatient(null);
         navigate("/admin/patients");
       })
       .catch((error) => {
-        console.error("Error saving patient:", error);
-        setErrorMessage("⚠️ فشل في إضافة المريض، تحقق من الاتصال بالخادم!");
+        if (error.response && error.response.data) {
+          const serverMessage = error.response.data.message; // ✅ Get the message correctly
+  
+          if (serverMessage && serverMessage.includes("A patient with mobile")) {
+            setErrorMessage("⚠️ رقم الهاتف مسجل بالفعل لمريض آخر!");
+          } else {
+            setErrorMessage("⚠️ حدث خطأ غير متوقع!");
+          }
+        } else { setErrorMessage("⚠️ فشل في إضافة المريض، تحقق من الاتصال بالخادم!");
+          
+        }
         showModal();
       });
   };
+  
 
   // Function to show modal
   const showModal = () => {

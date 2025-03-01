@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface PatientRepository extends JpaRepository<Patient, Long> {
     List<Patient> findByMobileContaining(String mobile);
+    boolean existsByMobile(String mobile);
+
 }
