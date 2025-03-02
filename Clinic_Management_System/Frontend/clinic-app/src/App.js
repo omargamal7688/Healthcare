@@ -12,6 +12,7 @@ import Footer from "./Footer";
 import "./App.css";
 import PatientProfile from "./PatientProfile";
 import Reservation from "./Reservation";
+import ReservationForm from "./ReservationForm";
 
 
 
@@ -34,6 +35,7 @@ const App = () => {
             <Route path="/patient-form" element={<PatientForm editingPatient={editingPatient} setEditingPatient={setEditingPatient} />} />
             <Route path="/profile/:id" element={<PatientProfile />} />
             <Route path="/admin/reservations" element={<Reservation />} />
+            <Route path="/admin/reservationForm" element={<ReservationForm />} />
           </Routes>
 
         </div>

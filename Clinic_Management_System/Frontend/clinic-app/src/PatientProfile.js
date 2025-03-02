@@ -8,9 +8,7 @@ const PatientProfile = () => {
   const navigate = useNavigate();
   const [patient, setPatient] = useState(null);
 
-  // Fetch patient data (Mock API Call Example)
   useEffect(() => {
-    // Replace this with actual API call to fetch patient details
     const fetchPatient = async () => {
       const response = await fetch(`http://localhost:8080/api/patients/${id}`);
       const data = await response.json();
@@ -120,8 +118,17 @@ const PatientProfile = () => {
             </div>
           </div>
 
+          {/* Add New Reservation Button */}
+          <button 
+  className="btn btn-primary mt-3" 
+  onClick={() => navigate("/admin/reservationForm", { state: { patientName: patient.name  ,patientId:patient.id} })}
+>
+  إضافة حجز جديد
+</button>
+
+
           {/* Back Button */}
-          <button className="btn btn-secondary mt-4" onClick={() => navigate(-1)}>
+          <button className="btn btn-secondary mt-4 ms-3" onClick={() => navigate(-1)}>
             رجوع
           </button>
         </div>
