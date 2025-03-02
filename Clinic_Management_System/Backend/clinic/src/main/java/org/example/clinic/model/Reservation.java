@@ -1,37 +1,39 @@
 package org.example.clinic.model;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+import org.example.clinic.model.Patient;
 
 import java.time.LocalDate;
+
+@ToString // Add this
 @Getter
 @Setter
 @Entity
 @Table(name = "reservation",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"patient_id", "date"}), // Prevent same patient from reserving on same date
-                @UniqueConstraint(columnNames = {"date", "turn"})  // Prevent two patients from having same turn on same date
+                @UniqueConstraint(columnNames = {"patient_id", "date"}),
+                @UniqueConstraint(columnNames = {"date", "turn"})
         })
-
 public class Reservation {
+    public Reservation() {}  // Add this
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private int turn;
-
     private LocalDate date;
-
     private String clinicName;
-
-    private String type; // Added the type field of type String
-    private String dayOfWeek;  // Add this field for the day of the week
+    private String type;
+    private String dayOfWeek;
 
     @ManyToOne
     @JoinColumn(name = "patient_id", nullable = false)
-    @JsonIgnore
+    @JsonIgnoreProperties(value = {"reservations"})
     private Patient patient;
-
-
 }

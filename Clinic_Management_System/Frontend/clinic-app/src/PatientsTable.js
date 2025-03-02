@@ -10,6 +10,8 @@ const PatientsTable = ({ setEditingPatient }) => {
   const [fetchError, setFetchError] = useState("");
   const [searchError, setSearchError] = useState("");
   const [deletePatientId, setDeletePatientId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const patientsPerPage = 7;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,28 +54,29 @@ const PatientsTable = ({ setEditingPatient }) => {
   const searchPatient = (e) => {
     e.preventDefault();
     if (!searchMobile) {
-        setSearchError("يجب إدخال رقم الهاتف للبحث");
-        showModal();
-        return;
+      setSearchError("يجب إدخال رقم الهاتف للبحث");
+      showModal();
+      return;
     }
     if (!/^(010|011|012|015)\d{8}$/.test(searchMobile)) {
-        setSearchError("يجب أن يبدأ الرقم بـ 010 أو 011 أو 012 أو 015 وأن يتكون من 11 رقمًا");
-        showModal();
-        return;
+      setSearchError("يجب أن يبدأ الرقم بـ 010 أو 011 أو 012 أو 015 وأن يتكون من 11 رقمًا");
+      showModal();
+      return;
     }
     axios.get(`http://localhost:8080/api/patients/search?mobile=${searchMobile}`)
-        .then((response) => {
-            if (response.data.length === 0) {
-                setSearchError("لم يتم العثور على المريض");
-                showModal();
-            } else {
-                setPatients(response.data);
-            }
-        })
-        .catch(() => {
-            setSearchError("حدث خطأ أثناء البحث");
-            showModal();
-        });
+      .then((response) => {
+        if (response.data.length === 0) {
+          setSearchError("لم يتم العثور على المريض");
+          showModal();
+        } else {
+          setPatients(response.data);
+          setCurrentPage(1);
+        }
+      })
+      .catch(() => {
+        setSearchError("حدث خطأ أثناء البحث");
+        showModal();
+      });
   };
 
   const showModal = () => {
@@ -81,13 +84,16 @@ const PatientsTable = ({ setEditingPatient }) => {
     modal.show();
   };
 
+  const indexOfLastPatient = currentPage * patientsPerPage;
+  const indexOfFirstPatient = indexOfLastPatient - patientsPerPage;
+  const currentPatients = patients.slice(indexOfFirstPatient, indexOfLastPatient);
+  const totalPages = Math.ceil(patients.length / patientsPerPage);
+
   return (
     <div className="container mt-4" dir="rtl">
-      <br />
-      <br />
+      <br>
+      </br>
       <h1 className="mt-4 text-end">قائمة المرضى</h1>
-
-     
 
       {fetchError && <div className="alert alert-danger text-end">{fetchError}</div>}
       {message && <div className="alert alert-success text-end">{message}</div>}
@@ -119,12 +125,12 @@ const PatientsTable = ({ setEditingPatient }) => {
             </tr>
           </thead>
           <tbody>
-            {patients.length === 0 ? (
+            {currentPatients.length === 0 ? (
               <tr>
                 <td colSpan="4" className="text-center">لا يوجد أي مريض</td>
               </tr>
             ) : (
-              patients.map((patient) => (
+              currentPatients.map((patient) => (
                 <tr key={patient.id}>
                   <td className="text-end">{patient.id}</td>
                   <td className="text-end">{patient.name}</td>
@@ -139,39 +145,56 @@ const PatientsTable = ({ setEditingPatient }) => {
             )}
           </tbody>
         </table>
-        <br></br>
+
+        <nav>
+          <ul className="pagination justify-content-center">
+            <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+              <button className="page-link" onClick={() => setCurrentPage(currentPage - 1)}>السابق</button>
+            </li>
+            {[...Array(totalPages)].map((_, i) => (
+              <li key={i} className={`page-item ${currentPage === i + 1 ? "active" : ""}`}>
+                <button className="page-link" onClick={() => setCurrentPage(i + 1)}>{i + 1}</button>
+              </li>
+            ))}
+            <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+              <button className="page-link" onClick={() => setCurrentPage(currentPage + 1)}>التالي</button>
+            </li>
+          </ul>
+        </nav>
+
         <button className="btn btn-success mb-3" onClick={() => navigate("/patient-form")}>
-        أضف مريض جديد
-      </button>
+          أضف مريض جديد
+        </button>
       </div>
 
-      <div className="modal fade" id="deleteModal" tabIndex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      {/* Delete Confirmation Modal */}
+      <div className="modal fade" id="deleteModal" tabIndex="-1" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h1 className="modal-title fs-5" id="deleteModalLabel">تأكيد الحذف</h1>
-              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <h5 className="modal-title">تأكيد الحذف</h5>
+              <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div className="modal-body">هل أنت متأكد من حذف هذا المريض؟</div>
+            <div className="modal-body">
+              هل أنت متأكد من أنك تريد حذف هذا المريض؟
+            </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-              <button type="button" className="btn btn-danger" data-bs-dismiss="modal" onClick={deletePatient}>حذف</button>
+              <button type="button" className="btn btn-danger" onClick={deletePatient} data-bs-dismiss="modal">حذف</button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="modal fade" id="errorModal" tabIndex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+      {/* Error Modal */}
+      <div className="modal fade" id="errorModal" tabIndex="-1" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h1 className="modal-title fs-5" id="errorModalLabel">خطأ</h1>
-              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <h5 className="modal-title">خطأ</h5>
+              <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div className="modal-body">{searchError}</div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
-            </div>
           </div>
         </div>
       </div>
