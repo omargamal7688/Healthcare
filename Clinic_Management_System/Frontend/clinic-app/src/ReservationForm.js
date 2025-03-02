@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom"; // Import useNavigate
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const ReservationForm = () => {
   const location = useLocation();
-  const patientName = location.state?.patientName || ""; // Get patient name from state
-  const patientId = location.state?.patientId || ""; // Get patient name from state
+  const navigate = useNavigate(); // Hook for navigation
+
+  const patientName = location.state?.patientName || "";
+  const patientId = location.state?.patientId || null;
 
   const [date, setDate] = useState(null);
   const [turn, setTurn] = useState(null);
   const [clinicName, setClinicName] = useState("");
   const [type, setType] = useState("كشف");
   const [reservedTurns, setReservedTurns] = useState([]);
+  const [modalMessage, setModalMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
   const totalChairs = 30;
 
   useEffect(() => {
@@ -36,27 +41,27 @@ const ReservationForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!turn) {
-      alert("يرجى اختيار الدور.");
+      showModal("يرجى اختيار الدور.", false);
       return;
     }
-  
+
     if (!patientId) {
-      alert("حدث خطأ: لم يتم تحديد المريض.");
+      showModal("حدث خطأ: لم يتم تحديد المريض.", false);
       return;
     }
-  
+
     const reservationData = {
       date,
       turn,
       clinicName,
       type,
       patient: {
-        id: patientId, // Ensure patientId is correctly set
+        id: patientId,
       },
     };
-  
+
     console.log("Submitting Reservation:", reservationData);
-  
+
     try {
       const response = await fetch("http://localhost:8080/api/reservations/", {
         method: "POST",
@@ -65,21 +70,36 @@ const ReservationForm = () => {
         },
         body: JSON.stringify(reservationData),
       });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "حدث خطأ أثناء الحجز.");
+
+      const text = await response.text();
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch {
+        result = text;
       }
-  
-      const result = await response.json();
-      console.log("Reservation created:", result);
-      alert("تم الحجز بنجاح!");
+
+      if (!response.ok) {
+        throw new Error(result.message || result || "حدث خطأ أثناء الحجز.");
+      }
+
+      showModal(result.message || "تم الحجز بنجاح!", true);
     } catch (error) {
       console.error("Error creating reservation:", error);
-      alert(error.message);
+      showModal(error.message, false);
     }
   };
-  
+
+  const showModal = (message, success) => {
+    setModalMessage(message);
+    setIsSuccess(success);
+    new window.bootstrap.Modal(document.getElementById("responseModal")).show();
+  };
+
+  const handleCloseModal = () => {
+    // Navigate to the reservations table page when closing the modal
+    navigate("/admin/reservations");
+  };
 
   return (
     <div className="container mt-5">
@@ -88,10 +108,6 @@ const ReservationForm = () => {
         <div className="mb-3">
           <label>اسم المريض</label>
           <input type="text" className="form-control" value={patientName} readOnly />
-        </div>
-        <div className="mb-3">
-          <label>اسم Id</label>
-          <input type="text" className="form-control" value={patientId} readOnly />
         </div>
 
         <div className="mb-3">
@@ -105,7 +121,7 @@ const ReservationForm = () => {
             dateFormat="yyyy-MM-dd"
             className="form-control"
             minDate={new Date()}
-            filterDate={(date) => date.getDay() !== 5} // Disable Fridays
+            filterDate={(date) => date.getDay() !== 5}
             placeholderText="اختر تاريخ الحجز"
           />
         </div>
@@ -113,21 +129,17 @@ const ReservationForm = () => {
         <div className="mb-3">
           <label>اختر الدور</label>
           <div className="d-flex flex-wrap gap-2" id="chairs-container">
-            {Array.from({ length: totalChairs }, (_, i) => i + 1).map(
-              (num) => (
-                <div
-                  key={num}
-                  className={`chair ${
-                    turn === num ? "selected" : ""
-                  } ${reservedTurns.includes(num) ? "disabled" : ""}`}
-                  onClick={() =>
-                    !reservedTurns.includes(num) && setTurn(num)
-                  }
-                >
-                  {num}
-                </div>
-              )
-            )}
+            {Array.from({ length: totalChairs }, (_, i) => i + 1).map((num) => (
+              <div
+                key={num}
+                className={`chair ${turn === num ? "selected" : ""} ${
+                  reservedTurns.includes(num) ? "disabled" : ""
+                }`}
+                onClick={() => !reservedTurns.includes(num) && setTurn(num)}
+              >
+                {num}
+              </div>
+            ))}
           </div>
           <input type="hidden" name="turn" value={turn || ""} />
         </div>
@@ -163,6 +175,32 @@ const ReservationForm = () => {
           إضافة حجز
         </button>
       </form>
+
+      {/* Bootstrap Modal for Success/Error Messages */}
+      <div className="modal fade" id="responseModal" tabIndex="-1" aria-hidden="true">
+        <div className="modal-dialog">
+          <div className={`modal-content ${isSuccess ? "text-success" : "text-danger"}`}>
+            <div className="modal-header">
+              <h5 className="modal-title">{isSuccess ? "نجاح" : "خطأ"}</h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                onClick={handleCloseModal} // Navigate when closing modal
+              ></button>
+            </div>
+            <div className="modal-body">
+              {modalMessage}
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={handleCloseModal}>
+                إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
