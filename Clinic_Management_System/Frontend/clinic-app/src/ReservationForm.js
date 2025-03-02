@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom"; // Import useNaviga
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-
+import "./reservationForm.css";
 const ReservationForm = () => {
   const location = useLocation();
   const navigate = useNavigate(); // Hook for navigation

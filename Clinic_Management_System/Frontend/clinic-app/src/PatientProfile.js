@@ -115,16 +115,18 @@ const PatientProfile = () => {
                   )}
                 </tbody>
               </table>
-            </div>
-          </div>
-
-          {/* Add New Reservation Button */}
-          <button 
+           
+              <button 
   className="btn btn-primary mt-3" 
   onClick={() => navigate("/admin/reservationForm", { state: { patientName: patient.name  ,patientId:patient.id} })}
 >
   إضافة حجز جديد
 </button>
+            </div>
+          </div>
+
+          {/* Add New Reservation Button */}
+   
 
 
           {/* Back Button */}
