@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ReservationService {
@@ -47,5 +48,24 @@ public class ReservationService {
     }
     public List<Integer> getReservedTurnsByDate(LocalDate date) {
         return reservationRepository.findReservedTurnsByDate(date);
+    }
+    public Optional<Reservation> findById(Long id) {
+        return reservationRepository.findById(id);
+    }
+
+    public void deleteById(Long id) {
+        reservationRepository.deleteById(id);
+    }
+
+    public Reservation cancelReservation(Long id) throws Exception {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new Exception("Reservation not found"));
+
+        reservation.setCancelled(true);
+        reservation.setTurn(0); // Ensure turn is reset to 0
+        return reservationRepository.save(reservation);
+    }
+    public List<Reservation> getActiveReservations() {
+        return reservationRepository.findByCancelledFalse();
     }
 }

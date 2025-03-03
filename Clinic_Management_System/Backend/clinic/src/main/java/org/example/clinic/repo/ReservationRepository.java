@@ -21,4 +21,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Query("SELECT r.turn FROM Reservation r WHERE r.date = :date")
     List<Integer> findReservedTurnsByDate(LocalDate date);
     long countByDateBetween(LocalDate startDate, LocalDate endDate);
+    List<Reservation> findByCancelledFalse();
 }

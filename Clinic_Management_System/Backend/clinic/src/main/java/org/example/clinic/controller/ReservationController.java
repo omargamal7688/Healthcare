@@ -81,4 +81,31 @@ public class ReservationController {
 
 
 
+
+
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteReservation(@PathVariable Long id) {
+        Optional<Reservation> reservation = reservationService.findById(id);
+        if (reservation.isPresent()) {
+            reservationService.deleteById(id);return ResponseEntity.ok("Reservation deleted successfully.");} else {return ResponseEntity.notFound().build();}}
+
+
+
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelReservation(@PathVariable Long id) {
+        try {
+            Reservation updatedReservation = reservationService.cancelReservation(id);
+            return ResponseEntity.ok(updatedReservation);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/active")
+    public List<Reservation> getActiveReservations() {
+        return reservationService.getActiveReservations();
+    }
+
+
 }

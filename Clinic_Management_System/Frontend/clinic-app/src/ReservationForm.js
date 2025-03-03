@@ -146,15 +146,20 @@ const ReservationForm = () => {
 
         <div className="mb-3">
           <label htmlFor="clinicName">اسم العيادة</label>
-          <input
-            type="text"
-            id="clinicName"
-            name="clinicName"
-            className="form-control"
-            value={clinicName}
-            onChange={(e) => setClinicName(e.target.value)}
-            required
-          />
+          <select
+    id="clinicName"
+    name="clinicName"
+    className="form-select"
+    value={clinicName}
+    onChange={(e) => setClinicName(e.target.value)}
+    required
+  >
+    <option value="">اختر العيادة</option>
+    <option value="مطرية">مطرية</option>
+    <option value="مصر الجديدة">مصر الجديدة</option>
+  </select>
+          
+           
         </div>
 
         <div className="mb-3">

@@ -1,26 +1,23 @@
 package org.example.clinic.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.example.clinic.model.Patient;
 
 import java.time.LocalDate;
 
-@ToString // Add this
+@ToString
 @Getter
 @Setter
 @Entity
 @Table(name = "reservation",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"patient_id", "date"}),
-                @UniqueConstraint(columnNames = {"date", "turn"})
+                @UniqueConstraint(columnNames = {"patient_id", "date"}) // Ensures a patient can't book twice on the same date
         })
 public class Reservation {
-    public Reservation() {}  // Add this
+    public Reservation() {}
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,9 +28,18 @@ public class Reservation {
     private String clinicName;
     private String type;
     private String dayOfWeek;
+    private boolean cancelled = false;
 
     @ManyToOne
     @JoinColumn(name = "patient_id", nullable = false)
     @JsonIgnoreProperties(value = {"reservations"})
     private Patient patient;
+
+    @PrePersist
+    @PreUpdate
+    private void checkCancellation() {
+        if (this.cancelled) {
+            this.turn = 0; // Set turn to 0 when cancelled
+        }
+    }
 }
