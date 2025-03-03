@@ -22,4 +22,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Integer> findReservedTurnsByDate(LocalDate date);
     long countByDateBetween(LocalDate startDate, LocalDate endDate);
     List<Reservation> findByCancelledFalse();
+    List<Reservation> findByCancelledTrue();
+
+
 }

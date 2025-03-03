@@ -26,11 +26,36 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             المرضى
           </Link>
         </li>
-        <li className="nav-item">
-          <Link className="nav-link text-white text-end" to="/admin/reservations">
-            الحجوزات
-          </Link>
-        </li>
+        <li className="nav-item dropdown">
+  <a 
+    className="nav-link dropdown-toggle text-white text-end" 
+    href="#" 
+    id="reservationsDropdown" 
+    role="button" 
+    data-bs-toggle="dropdown" 
+    aria-expanded="false"
+  >
+    الحجوزات
+  </a>
+  <ul className="dropdown-menu bg-dark text-white text-end" aria-labelledby="reservationsDropdown">
+    <li>
+      <Link className="dropdown-item text-white" to="/admin/reservations">
+        الحجوزات النشطة
+      </Link>
+    </li>
+    <li>
+      <Link className="dropdown-item text-white" to="/admin/reservations/cancel">
+        الحجوزات الملغاة
+      </Link>
+    </li>
+    <li>
+      <Link className="dropdown-item text-white" to="/admin/all-reservations">
+        جميع الحجوزات
+      </Link>
+    </li>
+  </ul>
+</li>
+
       </ul>
     </nav>
     </div>

@@ -106,6 +106,18 @@ public class ReservationController {
     public List<Reservation> getActiveReservations() {
         return reservationService.getActiveReservations();
     }
-
+    @GetMapping("/cancel")
+    public List<Reservation> getCancelledReservations() {
+        return reservationService.getCancelReservations();
+    }
+    @PutMapping("/{id}/active")
+    public ResponseEntity<?> activeReservation(@PathVariable Long id) {
+        try {
+            Reservation updatedReservation = reservationService.activeReservation(id);
+            return ResponseEntity.ok(updatedReservation);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
 
 }

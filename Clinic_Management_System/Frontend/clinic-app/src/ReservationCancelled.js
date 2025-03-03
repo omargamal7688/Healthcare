@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const Reservation = () => {
+const ReservationCancelled = () => {
   const [reservations, setReservations] = useState([]);
   const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null); // Store reservation ID for deletion
@@ -13,7 +13,7 @@ const Reservation = () => {
   }, []);
 
   const fetchReservations = () => {
-    axios.get("http://localhost:8080/api/reservations/active")
+    axios.get("http://localhost:8080/api/reservations/cancel")
       .then((response) => setReservations(response.data))
       .catch(() => {
         setError("تأكد من الاتصال بالخادم");
@@ -36,12 +36,12 @@ const Reservation = () => {
   };
 
   const cancelReservation = (id) => {
-    axios.put(`http://localhost:8080/api/reservations/${id}/cancel`)
+    axios.put(`http://localhost:8080/api/reservations/${id}/active`)
       .then(() => {
         fetchReservations(); // Refresh list after cancellation
       })
       .catch(() => {
-        alert("حدث خطأ أثناء إلغاء الحجز، تأكد من الاتصال بالخادم.");
+        alert("حدث خطأ أثناء تفعيل الحجز، تأكد من الاتصال بالخادم.");
       });
   };
 
@@ -101,7 +101,7 @@ const Reservation = () => {
                       onClick={() => cancelReservation(reservation.id)} 
                       
                     >
-                      إلغاء الحجز
+                      تفعيل الحجز 
                     </button>
                   </td>
                 </tr>
@@ -138,4 +138,4 @@ const Reservation = () => {
   );
 };
 
-export default Reservation;
+export default ReservationCancelled;

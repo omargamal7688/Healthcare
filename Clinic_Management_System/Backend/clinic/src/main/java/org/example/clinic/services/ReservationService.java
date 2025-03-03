@@ -65,7 +65,21 @@ public class ReservationService {
         reservation.setTurn(0); // Ensure turn is reset to 0
         return reservationRepository.save(reservation);
     }
+
+    public Reservation activeReservation(Long id) throws Exception {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new Exception("Reservation not found"));
+
+        reservation.setCancelled(false);
+        reservation.setTurn(0); // Ensure turn is reset to 0
+        return reservationRepository.save(reservation);
+    }
     public List<Reservation> getActiveReservations() {
         return reservationRepository.findByCancelledFalse();
+    }
+
+
+    public List<Reservation> getCancelReservations() {
+        return reservationRepository.findByCancelledTrue();
     }
 }
