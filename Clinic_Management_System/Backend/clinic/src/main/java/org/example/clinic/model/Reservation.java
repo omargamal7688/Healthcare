@@ -29,6 +29,7 @@ public class Reservation {
     private String type;
     private String dayOfWeek;
     private boolean cancelled = false;
+    private boolean success = false;
 
     @ManyToOne
     @JoinColumn(name = "patient_id", nullable = false)
