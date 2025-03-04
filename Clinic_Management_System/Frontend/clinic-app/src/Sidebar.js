@@ -39,10 +39,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   </a>
   <ul className="dropdown-menu bg-dark text-white text-end" aria-labelledby="reservationsDropdown">
     <li>
+      
       <Link className="dropdown-item text-white" to="/admin/reservations">
-        الحجوزات النشطة
+       
+        الحجوزات قيد الانتظار
       </Link>
     </li>
+    <li>
+      
+      <Link className="dropdown-item text-white" to="/admin/reservations">
+       
+        الحجوزات تم دخولها 
+      </Link>
+    </li>
+    
     <li>
       <Link className="dropdown-item text-white" to="/admin/reservations/cancel">
         الحجوزات الملغاة

@@ -23,6 +23,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     long countByDateBetween(LocalDate startDate, LocalDate endDate);
     List<Reservation> findByCancelledFalse();
     List<Reservation> findByCancelledTrue();
+    List<Reservation> findBySuccessFalse();
 
 
 }

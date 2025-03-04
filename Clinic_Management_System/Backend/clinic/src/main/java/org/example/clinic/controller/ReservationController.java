@@ -101,7 +101,15 @@ public class ReservationController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
-
+    @PutMapping("/{id}/success")
+    public ResponseEntity<?> successReservation(@PathVariable Long id) {
+        try {
+            Reservation updatedReservation = reservationService.successReservation(id);
+            return ResponseEntity.ok(updatedReservation);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
     @GetMapping("/active")
     public List<Reservation> getActiveReservations() {
         return reservationService.getActiveReservations();
