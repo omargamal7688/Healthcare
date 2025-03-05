@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const ReservationCancelled = () => {
   const [reservations, setReservations] = useState([]);
   const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null); // Store reservation ID for deletion
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchReservations();
