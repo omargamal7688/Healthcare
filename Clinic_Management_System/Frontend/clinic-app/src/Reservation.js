@@ -1,46 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
-import { io } from "socket.io-client"; 
-const socket = io("http://localhost:8080"); 
-const Reservation = () => {
-  const [reservations, setReservations] = useState([]);
-  const [error, setError] = useState("");
-  const [selectedId, setSelectedId] = useState(null); // For delete modal
-  const [selectedCancelId, setSelectedCancelId] = useState(null); // For cancel modal
-  
 
-  useEffect(() => {
-    fetchReservations();
-
-    socket.on("new_reservation", () => {
-      fetchReservations(); // Reload data when backend sends update
-    });
-
-    return () => {
-      socket.disconnect(); // Cleanup on unmount
-    };
-  }, []);
-
- 
-
-
-  const fetchReservations = () => {
-    axios.get("http://localhost:8080/api/reservations/active")
-      .then((response) => {
-        // Filter reservations to keep only those with success = false and cancelled = false
-        const filteredReservations = response.data.filter(reservation => !reservation.success && !reservation.cancelled);
-        setReservations(filteredReservations);
-      })
-      .catch(() => {
-        setError("تأكد من الاتصال بالخادم");
-      });
-  };
+const Reservation = ({ reservations, setReservations, fetchReservations }) => {
+  const [selectedId, setSelectedId] = useState(null);
+  const [selectedCancelId, setSelectedCancelId] = useState(null);
 
   const deleteReservation = () => {
     if (selectedId) {
-      axios.delete(`http://localhost:8080/api/reservations/${selectedId}`)
+      axios
+        .delete(`http://localhost:8080/api/reservations/${selectedId}`)
         .then(() => {
-          fetchReservations(); // Refresh list after deletion
+          fetchReservations();
         })
         .catch(() => {
           alert("حدث خطأ أثناء حذف الحجز، تأكد من الاتصال بالخادم.");
@@ -53,9 +23,10 @@ const Reservation = () => {
 
   const confirmCancelReservation = () => {
     if (selectedCancelId) {
-      axios.put(`http://localhost:8080/api/reservations/${selectedCancelId}/cancel`)
+      axios
+        .put(`http://localhost:8080/api/reservations/${selectedCancelId}/cancel`)
         .then(() => {
-          fetchReservations(); // Refresh list after cancellation
+          fetchReservations();
         })
         .catch(() => {
           alert("حدث خطأ أثناء إلغاء الحجز، تأكد من الاتصال بالخادم.");
@@ -68,49 +39,42 @@ const Reservation = () => {
 
   const openDeleteModal = (id) => {
     setSelectedId(id);
-    const modal = new window.bootstrap.Modal(document.getElementById("deleteModal"));
-    modal.show();
+    new window.bootstrap.Modal(document.getElementById("deleteModal")).show();
   };
 
   const closeDeleteModal = () => {
     setSelectedId(null);
-    const modalElement = document.getElementById("deleteModal");
-    const modal = window.bootstrap.Modal.getInstance(modalElement);
+    const modal = window.bootstrap.Modal.getInstance(document.getElementById("deleteModal"));
     if (modal) modal.hide();
   };
 
   const openCancelModal = (id) => {
     setSelectedCancelId(id);
-    const modal = new window.bootstrap.Modal(document.getElementById("cancelModal"));
-    modal.show();
+    new window.bootstrap.Modal(document.getElementById("cancelModal")).show();
   };
 
   const closeCancelModal = () => {
     setSelectedCancelId(null);
-    const modalElement = document.getElementById("cancelModal");
-    const modal = window.bootstrap.Modal.getInstance(modalElement);
+    const modal = window.bootstrap.Modal.getInstance(document.getElementById("cancelModal"));
     if (modal) modal.hide();
   };
 
   return (
     <div className="container mt-4" dir="rtl">
-      <br />
       <h1 className="mt-4 text-end">قائمة الحجوزات</h1>
-
-      {error && <div className="alert alert-danger text-end">{error}</div>}
 
       <div className="table-responsive">
         <table className="table table-striped mt-3 text-end">
           <thead className="table-dark">
             <tr>
-              <th className="text-end">الدور</th>
-              <th className="text-end">تاريخ الحجز</th>
-              <th className="text-end">اليوم</th>
-              <th className="text-end">اسم العيادة</th>
-              <th className="text-end">حالة الحجز</th>
-              <th className="text-end">الانتظار</th>
-              <th className="text-end">النوع</th>
-              <th className="text-end">الإجراءات</th>
+              <th>الدور</th>
+              <th>تاريخ الحجز</th>
+              <th>اليوم</th>
+              <th>اسم العيادة</th>
+              <th>حالة الحجز</th>
+              <th>الانتظار</th>
+              <th>النوع</th>
+              <th>الإجراءات</th>
             </tr>
           </thead>
           <tbody>
@@ -126,16 +90,10 @@ const Reservation = () => {
                   <td>{reservation.type}</td>
                   <td>
                     <button className="btn btn-primary btn-sm ms-2">تعديل</button>
-                    <button 
-                      className="btn btn-danger btn-sm ms-2"
-                      onClick={() => openDeleteModal(reservation.id)}
-                    >
+                    <button className="btn btn-danger btn-sm ms-2" onClick={() => openDeleteModal(reservation.id)}>
                       حذف
                     </button>
-                    <button 
-                      className="btn btn-warning btn-sm ms-2"
-                      onClick={() => openCancelModal(reservation.id)}
-                    >
+                    <button className="btn btn-warning btn-sm ms-2" onClick={() => openCancelModal(reservation.id)}>
                       إلغاء الحجز
                     </button>
                   </td>
@@ -150,7 +108,7 @@ const Reservation = () => {
         </table>
       </div>
 
-      {/* Bootstrap Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       <div className="modal fade" id="deleteModal" tabIndex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
@@ -158,18 +116,20 @@ const Reservation = () => {
               <h5 className="modal-title" id="deleteModalLabel">تأكيد الحذف</h5>
               <button type="button" className="btn-close" onClick={closeDeleteModal}></button>
             </div>
-            <div className="modal-body">
-              هل أنت متأكد أنك تريد حذف هذا الحجز؟
-            </div>
+            <div className="modal-body">هل أنت متأكد أنك تريد حذف هذا الحجز؟</div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={closeDeleteModal}>إلغاء</button>
-              <button type="button" className="btn btn-danger" onClick={deleteReservation}>حذف</button>
+              <button type="button" className="btn btn-secondary" onClick={closeDeleteModal}>
+                إلغاء
+              </button>
+              <button type="button" className="btn btn-danger" onClick={deleteReservation}>
+                حذف
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bootstrap Cancel Confirmation Modal */}
+      {/* Cancel Confirmation Modal */}
       <div className="modal fade" id="cancelModal" tabIndex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content">
@@ -177,17 +137,18 @@ const Reservation = () => {
               <h5 className="modal-title" id="cancelModalLabel">تأكيد إلغاء الحجز</h5>
               <button type="button" className="btn-close" onClick={closeCancelModal}></button>
             </div>
-            <div className="modal-body">
-              هل أنت متأكد أنك تريد إلغاء هذا الحجز؟
-            </div>
+            <div className="modal-body">هل أنت متأكد أنك تريد إلغاء هذا الحجز؟</div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={closeCancelModal}>إلغاء</button>
-              <button type="button" className="btn btn-warning" onClick={confirmCancelReservation}>إلغاء الحجز</button>
+              <button type="button" className="btn btn-secondary" onClick={closeCancelModal}>
+                إلغاء
+              </button>
+              <button type="button" className="btn btn-warning" onClick={confirmCancelReservation}>
+                إلغاء الحجز
+              </button>
             </div>
           </div>
         </div>
       </div>
-
     </div>
   );
 };
