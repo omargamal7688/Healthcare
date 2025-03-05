@@ -1,21 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
-
+import { io } from "socket.io-client"; 
+const socket = io("http://localhost:8080"); 
 const Reservation = () => {
   const [reservations, setReservations] = useState([]);
   const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null); // For delete modal
   const [selectedCancelId, setSelectedCancelId] = useState(null); // For cancel modal
-  const navigate = useNavigate();
+  
 
   useEffect(() => {
     fetchReservations();
+
+    socket.on("new_reservation", () => {
+      fetchReservations(); // Reload data when backend sends update
+    });
+
+    return () => {
+      socket.disconnect(); // Cleanup on unmount
+    };
   }, []);
+
+ 
+
 
   const fetchReservations = () => {
     axios.get("http://localhost:8080/api/reservations/active")
-      .then((response) => setReservations(response.data))
+      .then((response) => {
+        // Filter reservations to keep only those with success = false and cancelled = false
+        const filteredReservations = response.data.filter(reservation => !reservation.success && !reservation.cancelled);
+        setReservations(filteredReservations);
+      })
       .catch(() => {
         setError("تأكد من الاتصال بالخادم");
       });
@@ -128,7 +143,7 @@ const Reservation = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="text-center">لا توجد حجوزات متاحة</td>
+                <td colSpan="8" className="text-center">لا توجد حجوزات متاحة</td>
               </tr>
             )}
           </tbody>
