@@ -1,10 +1,24 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import axios from "axios";
+
+const arabicDays = {
+  Sunday: "الأحد",
+  Monday: "الإثنين",
+  Tuesday: "الثلاثاء",
+  Wednesday: "الأربعاء",
+  Thursday: "الخميس",
+  Friday: "الجمعة",
+  Saturday: "السبت",
+};
 
 const Reservation = ({ reservations, setReservations, fetchReservations }) => {
   const [selectedId, setSelectedId] = useState(null);
   const [selectedCancelId, setSelectedCancelId] = useState(null);
-
+  const today = new Date().toISOString().split("T")[0]; 
+  useEffect(() => {
+    fetchReservations();
+  }, [fetchReservations]);
+  
   const deleteReservation = () => {
     if (selectedId) {
       axios
@@ -61,7 +75,8 @@ const Reservation = ({ reservations, setReservations, fetchReservations }) => {
 
   return (
     <div className="container mt-4" dir="rtl">
-      <h1 className="mt-4 text-end">قائمة الحجوزات</h1>
+      <br />
+      <h1 className="mt-4 text-end">قائمة الحجوزات بتاريخ {new Intl.DateTimeFormat('ar-EG', { day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date(today))}</h1>
 
       <div className="table-responsive">
         <table className="table table-striped mt-3 text-end">
@@ -81,13 +96,15 @@ const Reservation = ({ reservations, setReservations, fetchReservations }) => {
             {reservations.length > 0 ? (
               reservations.map((reservation) => (
                 <tr key={reservation.id}>
-                  <td>{reservation.turn}</td>
-                  <td>{reservation.date}</td>
-                  <td>{reservation.dayOfWeek}</td>
+                  <td>{new Intl.NumberFormat('ar-EG').format(reservation.turn)}</td>
+
+                  <td>{new Intl.DateTimeFormat('ar-EG', { day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date(reservation.date))}</td>
+
+                  <td>{arabicDays[reservation.dayOfWeek] || reservation.dayOfWeek}</td>
                   <td>{reservation.clinicName}</td>
                   <td>{reservation.cancelled ? "ملغي" : "نشط"}</td>
                   <td>{reservation.success ? "تم الدخول" : "قيد الانتظار"}</td>
-                  <td>{reservation.type}</td>
+                  <td>{reservation.type === "New" ? "جديد" : "متابعة"}</td>
                   <td>
                     <button className="btn btn-primary btn-sm ms-2">تعديل</button>
                     <button className="btn btn-danger btn-sm ms-2" onClick={() => openDeleteModal(reservation.id)}>

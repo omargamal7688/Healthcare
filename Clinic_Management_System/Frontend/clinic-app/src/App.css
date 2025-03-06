@@ -99,3 +99,7 @@ body {
         margin-right: 0;
     }
 }
+.modal[aria-hidden="true"] {
+    inset: true;
+  }
+  

@@ -31,7 +31,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              الحجوزات
+            حجوزات اليوم  
             </button>
             <ul
               className="dropdown-menu bg-dark text-white text-end"
@@ -43,7 +43,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 </Link>
               </li>
               <li>
-                <Link className="dropdown-item text-white" to="/admin/reservations">
+                <Link className="dropdown-item text-white" to="/admin/reservations/success">
                   الحجوزات تم دخولها
                 </Link>
               </li>

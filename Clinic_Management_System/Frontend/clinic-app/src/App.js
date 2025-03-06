@@ -14,26 +14,41 @@ import PatientProfile from "./PatientProfile";
 import Reservation from "./Reservation";
 import ReservationForm from "./ReservationForm";
 import ReservationCancelled from "./ReservationCancelled";
+import ReservationSuccess from "./ReservationSuccess";
 
 const App = () => {
   const [editingPatient, setEditingPatient] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [reservations, setReservations] = useState([]);
+  const [reservations2, setReservations2] = useState([]);
   const [x,setX] = useState(null);
 
   const fetchReservations = useCallback(() => {
     axios
-      .get("http://localhost:8080/api/reservations/active")
+      .get("http://localhost:8080/api/reservations/")
       .then((response) => {
-        const today = new Date().toISOString().split("T")[0]; 
+        const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+console.log(today);
         const filteredReservations = response.data.filter(reservation => 
           !reservation.success && 
-          !reservation.cancelled && 
-          reservation.date === today 
+          !reservation.cancelled &&
+          reservation.date === today
         );
-        console.log("Filtered Reservations:", filteredReservations.length);
         setReservations(filteredReservations);
-    setX(filteredReservations.length);
+        setX(filteredReservations.length);
+        console.log("Filtered Reservations:", filteredReservations);
+
+        const filteredReservations2 = response.data.filter(reservation => 
+          reservation.success && 
+          !reservation.cancelled &&
+          reservation.date === today
+        );
+        
+        setReservations2(filteredReservations2);
+        setX(filteredReservations2.length);
+        console.log("Filtered Reservations2:", filteredReservations2);
+        
+       
   
       })
       .catch(() => {
@@ -47,6 +62,8 @@ const App = () => {
     fetchReservations();
   }, [fetchReservations]);
 
+
+  
   return (
     <div>
       <Navbar />
@@ -66,6 +83,9 @@ const App = () => {
                 />
               } />
               <Route path="/admin/reservations/cancel" element={<ReservationCancelled />} />
+             
+           <Route path="/admin/reservations/success" element={<ReservationSuccess reservations2={reservations2} setReservations2={setReservations2} fetchReservations={fetchReservations} />} />
+
               <Route path="/admin/reservationForm" element={<ReservationForm />} />
             </Routes>
           </div>
