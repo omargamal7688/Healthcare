@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const arabicDays = {
@@ -14,11 +14,12 @@ const arabicDays = {
 const Reservation = ({ reservations, setReservations, fetchReservations }) => {
   const [selectedId, setSelectedId] = useState(null);
   const [selectedCancelId, setSelectedCancelId] = useState(null);
-  const today = new Date().toISOString().split("T")[0]; 
+  const today = new Date().toISOString().split("T")[0];
+
   useEffect(() => {
     fetchReservations();
   }, [fetchReservations]);
-  
+
   const deleteReservation = () => {
     if (selectedId) {
       axios
@@ -49,6 +50,17 @@ const Reservation = ({ reservations, setReservations, fetchReservations }) => {
           closeCancelModal();
         });
     }
+  };
+
+  const confirmSuccessReservation = (id) => {
+    axios
+      .put(`http://localhost:8080/api/reservations/${id}/success`)
+      .then(() => {
+        fetchReservations();
+      })
+      .catch(() => {
+        alert("حدث خطأ أثناء تأكيد الدخول، تأكد من الاتصال بالخادم.");
+      });
   };
 
   const openDeleteModal = (id) => {
@@ -97,9 +109,7 @@ const Reservation = ({ reservations, setReservations, fetchReservations }) => {
               reservations.map((reservation) => (
                 <tr key={reservation.id}>
                   <td>{new Intl.NumberFormat('ar-EG').format(reservation.turn)}</td>
-
                   <td>{new Intl.DateTimeFormat('ar-EG', { day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date(reservation.date))}</td>
-
                   <td>{arabicDays[reservation.dayOfWeek] || reservation.dayOfWeek}</td>
                   <td>{reservation.clinicName}</td>
                   <td>{reservation.cancelled ? "ملغي" : "نشط"}</td>
@@ -113,6 +123,9 @@ const Reservation = ({ reservations, setReservations, fetchReservations }) => {
                     <button className="btn btn-warning btn-sm ms-2" onClick={() => openCancelModal(reservation.id)}>
                       إلغاء الحجز
                     </button>
+                    <button className="btn btn-success btn-sm ms-2" onClick={() => confirmSuccessReservation(reservation.id)}>
+                      تأكيد الدخول
+                    </button>
                   </td>
                 </tr>
               ))
@@ -123,48 +136,6 @@ const Reservation = ({ reservations, setReservations, fetchReservations }) => {
             )}
           </tbody>
         </table>
-      </div>
-
-      {/* Delete Confirmation Modal */}
-      <div className="modal fade" id="deleteModal" tabIndex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title" id="deleteModalLabel">تأكيد الحذف</h5>
-              <button type="button" className="btn-close" onClick={closeDeleteModal}></button>
-            </div>
-            <div className="modal-body">هل أنت متأكد أنك تريد حذف هذا الحجز؟</div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={closeDeleteModal}>
-                إلغاء
-              </button>
-              <button type="button" className="btn btn-danger" onClick={deleteReservation}>
-                حذف
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Cancel Confirmation Modal */}
-      <div className="modal fade" id="cancelModal" tabIndex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title" id="cancelModalLabel">تأكيد إلغاء الحجز</h5>
-              <button type="button" className="btn-close" onClick={closeCancelModal}></button>
-            </div>
-            <div className="modal-body">هل أنت متأكد أنك تريد إلغاء هذا الحجز؟</div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={closeCancelModal}>
-                إلغاء
-              </button>
-              <button type="button" className="btn btn-warning" onClick={confirmCancelReservation}>
-                إلغاء الحجز
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

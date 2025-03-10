@@ -21,14 +21,15 @@ const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [reservations, setReservations] = useState([]);
   const [reservations2, setReservations2] = useState([]);
-  const [x,setX] = useState(null);
+  const [x, setX] = useState(null);
 
   const fetchReservations = useCallback(() => {
     axios
       .get("http://localhost:8080/api/reservations/")
       .then((response) => {
         const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
-console.log(today);
+        console.log(today);
+
         const filteredReservations = response.data.filter(reservation => 
           !reservation.success && 
           !reservation.cancelled &&
@@ -47,28 +48,29 @@ console.log(today);
         setReservations2(filteredReservations2);
         setX(filteredReservations2.length);
         console.log("Filtered Reservations2:", filteredReservations2);
-        
-       
-  
       })
       .catch(() => {
         console.error("تأكد من الاتصال بالخادم");
       });
   }, []);
+
   useEffect(() => {
     console.log(x);
   }, [x]);
+
   useEffect(() => {
-    fetchReservations();
+    fetchReservations(); // Fetch data initially
+
+    const interval = setInterval(fetchReservations, 5000); // Fetch every 5 seconds
+
+    return () => clearInterval(interval); // Cleanup interval on unmount
   }, [fetchReservations]);
 
-
-  
   return (
     <div>
       <Navbar />
       <div className={`app-container ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"}`}>
-        <Sidebar  isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
         <div className="main-content">
           <div className="content">
             <Routes>
@@ -83,9 +85,7 @@ console.log(today);
                 />
               } />
               <Route path="/admin/reservations/cancel" element={<ReservationCancelled />} />
-             
-           <Route path="/admin/reservations/success" element={<ReservationSuccess reservations2={reservations2} setReservations2={setReservations2} fetchReservations={fetchReservations} />} />
-
+              <Route path="/admin/reservations/success" element={<ReservationSuccess reservations2={reservations2} setReservations2={setReservations2} fetchReservations={fetchReservations} />} />
               <Route path="/admin/reservationForm" element={<ReservationForm />} />
             </Routes>
           </div>

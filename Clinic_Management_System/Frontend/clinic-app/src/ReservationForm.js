@@ -13,7 +13,7 @@ const ReservationForm = () => {
 
   const [date, setDate] = useState(null);
   const [turn, setTurn] = useState(null);
-  const [clinicName, setClinicName] = useState("");
+  
   const [type, setType] = useState("كشف");
   const [reservedTurns, setReservedTurns] = useState([]);
   const [modalMessage, setModalMessage] = useState("");
@@ -53,7 +53,6 @@ const ReservationForm = () => {
     const reservationData = {
       date,
       turn,
-      clinicName,
       type,
       patient: {
         id: patientId,
@@ -144,23 +143,7 @@ const ReservationForm = () => {
           <input type="hidden" name="turn" value={turn || ""} />
         </div>
 
-        <div className="mb-3">
-          <label htmlFor="clinicName">اسم العيادة</label>
-          <select
-    id="clinicName"
-    name="clinicName"
-    className="form-select"
-    value={clinicName}
-    onChange={(e) => setClinicName(e.target.value)}
-    required
-  >
-    <option value="">اختر العيادة</option>
-    <option value="مطرية">مطرية</option>
-    <option value="مصر الجديدة">مصر الجديدة</option>
-  </select>
-          
-           
-        </div>
+      
 
         <div className="mb-3">
           <label htmlFor="type">النوع</label>
