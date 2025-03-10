@@ -23,44 +23,51 @@ public class PatientService {
     public List<PatientDTO> getAllPatients() {return PatientMapper.toDTOList(patientRepository.findAll());}
 //***********************************************************************************************************
 
-
 //Method save new patient or update by id
-    public Patient saveOrUpdatePatient(Patient patient) {
-        if (patient.getId() == null || patient.getId() == 0) {
-            // Create new patient - Check if mobile already exists
-            if (patientRepository.existsByMobile(patient.getMobile())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ A patient with mobile " + patient.getMobile() + " already exists.");
-            }
-            return patientRepository.save(patient);
-        } else {
-            // Update existing patient
-            return patientRepository.findById(patient.getId()).map(existingPatient -> {
-                if (!existingPatient.getMobile().equals(patient.getMobile()) &&
-                        patientRepository.existsByMobile(patient.getMobile())) {
-                    throw new ResponseStatusException(HttpStatus.CONFLICT, "❌ A patient with mobile " + patient.getMobile() + " already exists.");
-                }
-                existingPatient.setName(patient.getName());
-                existingPatient.setMobile(patient.getMobile());
-                return patientRepository.save(existingPatient);
-            }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "❌ Patient not found with ID " + patient.getId()));
-        }
-    }
+public Patient saveOrUpdatePatient(Patient patient) {
+    if (patient.getId() == null || patient.getId() == 0) {
+        // Creating a new patient - Check if mobile already exists
+        if (patientRepository.existsByMobile(patient.getMobile())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "❌ A patient with mobile " + patient.getMobile() + " already exists.");}
+        return patientRepository.save(patient);}
+    else {// Updating an existing patient
+        Optional<Patient> existingPatientOpt = patientRepository.findById(patient.getId());
+        if (existingPatientOpt.isPresent()) {Patient existingPatient = existingPatientOpt.get();
+            // Prevent duplicate mobile number update
+            if (!existingPatient.getMobile().equals(patient.getMobile()) && patientRepository.existsByMobile(patient.getMobile())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "❌ A patient with mobile " + patient.getMobile() + " already exists.");}
+            // Update fields
+            existingPatient.setName(patient.getName());
+            existingPatient.setMobile(patient.getMobile());
+            return patientRepository.save(existingPatient);}
+        else {throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "❌ Patient not found with ID " + patient.getId());}}}
 //*********************************************************************************************************************
 
+//Method find patient by his id
+public PatientDTO findById(Long id) {
+    Patient patient = patientRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "❌ Patient not found with ID " + id));
+    return PatientMapper.toDTO(patient);}
 
-    public Optional<Patient> findById(Long id) {
-        return patientRepository.findById(id);
-    }
+//  *******************************************************************************************************
 
-    // Method to delete a patient by ID
+//Method to delete a patient by ID
     public void deleteById(Long id) {
-        patientRepository.deleteById(id);
-    }
+    if (!patientRepository.existsById(id)) {throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "❌ Patient not found with ID " + id);}
+    patientRepository.deleteById(id);}
+//*********************************************************************************************************************
 
-    public List<Patient> searchPatientByMobile(String mobile) {
-        return patientRepository.findByMobileContaining(mobile);
-    }
-    public Optional<Patient> getPatientById(Long id) {
-        return patientRepository.findById(id);
-    }
+//Method to return patient object by his mobile
+public PatientDTO getPatientByMobile(String mobile) {
+    Patient patient = patientRepository.findByMobileContaining(mobile)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "❌ Patient not found with mobile " + mobile));
+    return PatientMapper.toDTO(patient);}
+//*********************************************************************************************************************
+
 }

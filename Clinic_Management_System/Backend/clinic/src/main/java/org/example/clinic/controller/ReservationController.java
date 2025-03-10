@@ -1,9 +1,11 @@
 package org.example.clinic.controller;
+import org.example.clinic.dto.PatientDTO;
 import org.example.clinic.dto.ReservationDTO;
 import org.example.clinic.model.Patient;
 import org.example.clinic.model.Reservation;
 import org.example.clinic.services.PatientService;
 import org.example.clinic.services.ReservationService;
+import org.example.clinic.utils.PatientMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -39,19 +41,35 @@ public ResponseEntity<?> getReservations(
 //****************************************************************************
 
 //api for save new reservation for patient
-    @PostMapping("/")
-    public ResponseEntity<?> createReservation(@RequestBody Reservation reservation) {
-        try {// Check if patient is null
-            if (reservation.getPatient() == null || reservation.getPatient().getId() == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Patient ID is required.");}
-            // Fetch the actual patient from DB
-            Optional<Patient> patient = patientService.getPatientById(reservation.getPatient().getId());
-            if (patient.isEmpty()) {return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Patient not found.");}
-            // Set the real patient before saving
-            reservation.setPatient(patient.get());
-            reservationService.createReservation(reservation);
-            return ResponseEntity.status(HttpStatus.CREATED).body("تم الحجز بنجاح");} catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());}}
+@PostMapping("/")
+public ResponseEntity<?> createReservation(@RequestBody Reservation reservation) {
+    try {
+        // Check if patient ID is provided
+        if (reservation.getPatient() == null || reservation.getPatient().getId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("❌ Patient ID is required.");
+        }
+
+        // Fetch the actual patient from DB
+        PatientDTO patientDTO = patientService.findById(reservation.getPatient().getId());
+        if (patientDTO == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ Patient not found.");
+        }
+
+        // Convert PatientDTO to Patient entity
+        Patient patientEntity = PatientMapper.toEntity(patientDTO);
+
+        // Set the actual Patient before saving
+        reservation.setPatient(patientEntity);
+
+        // Save the reservation
+        reservationService.createReservation(reservation);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body("✅ تم الحجز بنجاح");
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ Error: " + e.getMessage());
+    }
+}
+
 //***************************************************************************************************************
 
 //api for return all reserved turns in the date
