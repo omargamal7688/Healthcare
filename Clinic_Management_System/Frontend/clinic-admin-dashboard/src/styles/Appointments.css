@@ -1,0 +1,96 @@
+.appointments-container {
+    padding: 20px;
+  }
+  
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .search-input,
+  .filter-select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .appointments-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  
+  .appointments-table th,
+  .appointments-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .appointments-table th {
+    background-color: #f4f4f4;
+  }
+  
+  .cancelled {
+    background-color: #ffdddd;
+    color: red;
+  }
+  
+  .success {
+    background-color: #ddffdd;
+    color: green;
+  }
+  
+  .no-results {
+    text-align: center;
+    font-weight: bold;
+    color: #888;
+  }
+/* Completed row turns green */
+.success {
+  background-color: #d4edda; /* Light green */
+  color: #155724;
+}
+
+/* Cancelled row turns red */
+.cancelled {
+  background-color: #f8d7da; /* Light red */
+  color: #721c24;
+}
+
+/* Completed button */
+.complete-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-right: 5px;
+}
+
+.complete-btn:hover {
+  background-color: #218838;
+}
+
+/* Cancel button */
+.cancel-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.cancel-btn:hover {
+  background-color: #c82333;
+}
+
+.date-filter {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-left: 10px;
+}
