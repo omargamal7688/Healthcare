@@ -53,7 +53,9 @@ const Patients = ({ patients, setPatients }) => {
                   </button>
                   {role === "admin" && (
                     <>
-                      <button className="btn edit">Edit</button>
+                      <button className="btn edit" onClick={() => navigate(`/add-patient/${patient.id}`)}>
+  Edit
+</button>
                       <button className="btn delete" onClick={() => handleDelete(patient.id)}>Delete</button>
                     </>
                   )}

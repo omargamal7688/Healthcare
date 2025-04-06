@@ -1,52 +1,45 @@
-import React, { useState } from "react";
-import {
-  FaUserMd, FaCalendarCheck, FaDollarSign, FaUserPlus, FaMoneyCheckAlt
-} from "react-icons/fa";
-import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
-} from "recharts";
+import React, { useState, useEffect } from "react";
+import { FaUserMd, FaCalendarCheck, FaDollarSign, FaMoneyCheckAlt } from "react-icons/fa";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import "../styles/Dashboard.css";
 
-// Sample Data
-const patientData = [
-  { month: "Jan", patients: 50, date: "2025-01-01" },
-  { month: "Feb", patients: 80, date: "2025-02-01" },
-  { month: "Mar", patients: 120, date: "2025-03-01" },
-  { month: "Apr", patients: 150, date: "2025-04-01" },
-  { month: "May", patients: 180, date: "2025-05-01" }
-];
+// Ensure all months are included in the data
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const appointmentData = [
-  { day: "Mon", appointments: 15 },
-  { day: "Tue", appointments: 22 },
-  { day: "Wed", appointments: 30 },
-  { day: "Thu", appointments: 28 },
-  { day: "Fri", appointments: 35 }
-];
+const Dashboard = ({ appointments }) => {
+  // State for selected year
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());  // Default to current year
 
-const earningsBreakdown = [
-  { name: "Consultations", value: 15000 },
-  { name: "Treatments", value: 25000 },
-  { name: "Follow-ups", value: 10000 }
-];
+  // Handle Year Change
+  const handleYearChange = (event) => {
+    setSelectedYear(Number(event.target.value));  // Ensure the value is a number
+  };
 
-const pendingPayments = [
-  { id: 1, patient: "John Doe", amount: "$200", dueDate: "Mar 15" },
-  { id: 2, patient: "Jane Smith", amount: "$350", dueDate: "Mar 18" },
-  { id: 3, patient: "Emily Johnson", amount: "$150", dueDate: "Mar 20" }
-];
+  // Generate appointment data per month for the selected year
+  const appointmentData = months.map((month, index) => {
+    const monthAppointments = appointments.filter(appointment => {
+      const appointmentDate = new Date(appointment.date);
+      const appointmentYear = appointmentDate.getFullYear();
+      const appointmentMonth = appointmentDate.getMonth();
+      return appointmentYear === selectedYear && appointmentMonth === index;
+    });
 
-const Dashboard = () => {
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-
-  const filteredPatientData = patientData.filter((data) => {
-    const dataDate = new Date(data.date);
-    return (
-      (!startDate || new Date(startDate) <= dataDate) &&
-      (!endDate || new Date(endDate) >= dataDate)
-    );
+    return {
+      day: month,
+      appointments: monthAppointments.length
+    };
   });
+
+  // Log appointmentData to debug
+  useEffect(() => {
+    console.log("Filtered Appointment Data for Year", selectedYear, appointmentData);
+  }, [appointmentData, selectedYear]);
+
+  const pendingPayments = [
+    { id: 1, patient: "John Doe", amount: "$200", dueDate: "Mar 15" },
+    { id: 2, patient: "Jane Smith", amount: "$350", dueDate: "Mar 18" },
+    { id: 3, patient: "Emily Johnson", amount: "$150", dueDate: "Mar 20" }
+  ];
 
   return (
     <div className="dashboard">
@@ -84,41 +77,21 @@ const Dashboard = () => {
 
       {/* 📈 Charts Section */}
       <div className="charts-container">
-        {/* Patient Growth */}
-        <div className="chart-card">
-          <h3>Patient Growth</h3>
-          <div className="date-filters">
-            <label>
-              Start Date:
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </label>
-            <label>
-              End Date:
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </label>
-          </div>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={filteredPatientData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="patients" stroke="#4CAF50" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
         {/* Appointment Trends */}
         <div className="chart-card">
           <h3>Appointment Trends</h3>
+          
+          {/* Year Selector */}
+          <div>
+            <label>Select Year:</label>
+            <select value={selectedYear} onChange={handleYearChange}>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+              {/* Add more years if necessary */}
+            </select>
+          </div>
+          
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={appointmentData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -127,18 +100,6 @@ const Dashboard = () => {
               <Tooltip />
               <Bar dataKey="appointments" fill="#8884d8" />
             </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Earnings Breakdown */}
-        <div className="chart-card">
-          <h3>Earnings Breakdown</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie data={earningsBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#FF7043" label />
-              <Tooltip />
-              <Legend />
-            </PieChart>
           </ResponsiveContainer>
         </div>
       </div>
@@ -164,19 +125,6 @@ const Dashboard = () => {
             ))}
           </tbody>
         </table>
-      </div>
-
-      {/* 🚀 Quick Actions */}
-      <div className="quick-actions">
-        <h3>Quick Actions</h3>
-        <div className="action-buttons">
-          <button className="btn primary">
-            <FaUserPlus /> Add Patient
-          </button>
-          <button className="btn secondary">
-            <FaCalendarCheck /> Schedule Appointment
-          </button>
-        </div>
       </div>
     </div>
   );

@@ -1,19 +1,11 @@
 import React, { useState } from "react";
 import "../styles/Appointments.css";
 
-const Appointments = () => {
+const Appointments = ({ appointments, setAppointments }) => {
   const [search, setSearch] = useState("");
   const [clinicFilter, setClinicFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
-  const [dateFilter, setDateFilter] = useState(""); // New date filter state
-
-  // Appointments Data
-  const [appointments, setAppointments] = useState([
-    { id: 1, turn: 1, date: "2025-03-01", clinicName: "المطرية", type: "كشف", dayOfWeek: "Saturday", cancelled: false, success: false, patientName: "جين سميث" },
-    { id: 2, turn: 2, date: "2025-03-02", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientName: "علي حسن" },
-    { id: 3, turn: 3, date: "2025-03-03", clinicName: "المطرية", type: "كشف", dayOfWeek: "Monday", cancelled: false, success: false, patientName: "أحمد محمود" },
-    { id: 4, turn: 4, date: "2025-03-04", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Tuesday", cancelled: false, success: false, patientName: "فاطمة علي" },
-  ]);
+  const [dateFilter, setDateFilter] = useState("");
 
   // Mark as Completed
   const markAsCompleted = (id) => {
@@ -40,7 +32,7 @@ const Appointments = () => {
         appt.date.includes(search)) &&
       (clinicFilter === "" || appt.clinicName === clinicFilter) &&
       (typeFilter === "" || appt.type === typeFilter) &&
-      (dateFilter === "" || appt.date === dateFilter) // Date filter condition
+      (dateFilter === "" || appt.date === dateFilter)
   );
 
   return (
@@ -86,7 +78,7 @@ const Appointments = () => {
             <th>Clinic</th>
             <th>Type</th>
             <th>Status</th>
-            <th>Actions</th> {/* Column for buttons */}
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>

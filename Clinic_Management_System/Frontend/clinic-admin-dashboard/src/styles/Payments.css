@@ -1,0 +1,48 @@
+.payments-container {
+    padding: 20px;
+  }
+  
+  .filters {
+    margin-bottom: 15px;
+  }
+  
+  .search-input, .filter-select {
+    margin-right: 10px;
+    padding: 8px;
+  }
+  
+  .payments-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .payments-table th, .payments-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .payments-table .paid {
+    background-color: #d4edda;
+  }
+  
+  .payments-table .pending {
+    background-color: #fff3cd;
+  }
+  
+  .pay-btn, .pending-btn {
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .pay-btn {
+    background-color: green;
+    color: white;
+  }
+  
+  .pending-btn {
+    background-color: orange;
+    color: white;
+  }
+  
