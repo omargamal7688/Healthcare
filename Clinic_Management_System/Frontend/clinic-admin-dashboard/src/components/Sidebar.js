@@ -13,7 +13,8 @@ const Sidebar = () => {
       {role === "admin" && <Link to="/appointments">Appointments</Link>}
       {role === "admin" && <Link to="/payments">Payments</Link>}
       {role === "admin" && <Link to="/settings">Settings</Link>}
-
+      {role === "admin" && <Link to="/Paymob">Paymob</Link>}
+      
     </div>
   );
 };

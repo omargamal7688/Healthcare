@@ -1,6 +1,7 @@
+// Profile.js
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FaWhatsapp } from "react-icons/fa";
+import { FaWhatsapp, FaPlusCircle } from "react-icons/fa";
 import "../styles/Profile.css";
 
 const Profile = ({ patients, appointments, setAppointments }) => {
@@ -40,6 +41,10 @@ const Profile = ({ patients, appointments, setAppointments }) => {
         appt.id === id ? { ...appt, cancelled: true, success: false } : appt
       )
     );
+  };
+
+  const handleMakeNewAppointment = () => {
+    navigate(`/add-appointment?patientId=${patientId}`); // Pass patientId
   };
 
   // WhatsApp Web Click to Chat URL
@@ -117,6 +122,11 @@ const Profile = ({ patients, appointments, setAppointments }) => {
       ) : (
         <p>No appointments found for this patient.</p>
       )}
+
+      {/* Make New Appointment Button */}
+      <button className="make-appointment-btn" onClick={handleMakeNewAppointment}>
+        <FaPlusCircle className="plus-icon" /> Make New Appointment
+      </button>
 
       <button className="back-button" onClick={() => navigate("/patients")}>
         Back to Patients

@@ -1,3 +1,4 @@
+// App.js
 import React, { useState, createContext, useContext } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
@@ -11,6 +12,8 @@ import Login from "./pages/Login";
 import "./App.css";
 import AddPatient from "./pages/AddPatient";
 import Payments from "./pages/Payments";
+import AddAppoinment from "./pages/AddAppoiment";
+import PaymobPaymentForm from "./pages/PaymobPaymentForm";
 
 // ✅ Role Context
 const RoleContext = createContext();
@@ -41,7 +44,6 @@ const App = () => {
     { id: 7, turn: 1, date: "2025-04-08", clinicName: "مصر الجديدة", type: "كشف", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:1,patientName: "John Doe" },
     { id: 8, turn: 2, date: "2025-04-08", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
     { id: 9, turn: 3, date: "2025-04-08", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" }
-  
   ]);
 const [payments, setPayments] = useState([
   { id: 1, patientName: "John Doe", amount: 200, date: "2025-03-05", status: "Pending" },
@@ -59,40 +61,50 @@ const [payments, setPayments] = useState([
     {role && <Sidebar />}
     <div className="content">
       {role && <div className="navbar"><Navbar onLogout={handleLogout} /></div>}
-      
+
       <div className="scrollable-content">
         <Routes>
-          <Route 
-            path="/" 
-            element={role === "admin" 
-              ? <Dashboard appointments={appointments} setAppointments={setAppointments} patients={patients} /> 
-              : role === "receptionist" 
-              ? <Patients patients={patients} setPatients={setPatients} /> 
-              : <Navigate to="/login" />} 
+          <Route
+            path="/"
+            element={role === "admin"
+              ? <Dashboard appointments={appointments} setAppointments={setAppointments} patients={patients} />
+              : role === "receptionist"
+              ? <Patients patients={patients} setPatients={setPatients} />
+              : <Navigate to="/login" />}
           />
-          <Route 
-            path="/patients" 
-            element={role ? <Patients patients={patients} setPatients={setPatients} /> : <Navigate to="/login" />} 
+          <Route
+            path="/patients"
+            element={role ? <Patients patients={patients} setPatients={setPatients} /> : <Navigate to="/login" />}
           />
-          <Route 
-            path="/patients/:id" 
-            element={role ? <Profile patients={patients} appointments={appointments} setAppointments={setAppointments} /> : <Navigate to="/login" />} 
+          <Route
+            path="/patients/:id"
+            element={role ? <Profile patients={patients} appointments={appointments} setAppointments={setAppointments} /> : <Navigate to="/login" />}
           />
-          <Route 
-            path="/add-patient/:id?" 
-            element={role ? <AddPatient patients={patients} setPatients={setPatients} /> : <Navigate to="/login" />} 
+          <Route
+            path="/add-patient/:id?"
+            element={role ? <AddPatient patients={patients} setPatients={setPatients} /> : <Navigate to="/login" />}
           />
-          <Route 
-            path="/appointments" 
-            element={role === "admin" ? <Appointments appointments={appointments} setAppointments={setAppointments} /> : <Navigate to="/login" />} 
+          <Route
+            path="/appointments"
+            element={role === "admin" ? <Appointments appointments={appointments} setAppointments={setAppointments} /> : <Navigate to="/login" />}
           />
-          <Route 
-            path="/settings" 
-            element={role === "admin" ? <Settings /> : <Navigate to="/login" />} 
+          <Route
+            path="/settings"
+            element={role === "admin" ? <Settings /> : <Navigate to="/login" />}
           />
-          <Route 
-            path="/payments" 
-            element={role === "admin" ? <Payments appointments={appointments} /> : <Navigate to="/login" />} 
+            <Route
+            path="/Paymob"
+            element={role === "admin" ? <PaymobPaymentForm /> : <Navigate to="/login" />}
+          />
+          
+
+           <Route
+            path="/add-appointment"
+            element={role === "admin" ? <AddAppoinment patients={patients} appointments={appointments} setAppointments={setAppointments} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/payments"
+            element={role === "admin" ? <Payments appointments={appointments} /> : <Navigate to="/login" />}
           />
           <Route path="/login" element={<Login />} />
         </Routes>

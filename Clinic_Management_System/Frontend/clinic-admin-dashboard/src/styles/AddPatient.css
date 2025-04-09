@@ -1,0 +1,60 @@
+/* AddPatient.css */
+.add-patient-container {
+    padding: 20px;
+  }
+  
+  .add-patient-container h1 {
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .add-patient-container form {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  .form-group input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .add-patient-container button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .add-patient-container button[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+  
+  .add-patient-container button[type="submit"]:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .error-message {
+    color: red;
+    font-size: 0.9em;
+    margin-top: 5px;
+  }

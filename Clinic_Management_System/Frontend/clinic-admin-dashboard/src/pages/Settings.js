@@ -4,7 +4,7 @@ const Settings = () => {
   return (
     <div>
       <h1>Dashboard</h1>
-      <p>Welcome to the Clinic Admin Settings.</p>
+      <p>Welcome to the Clinic Admin .</p>
     </div>
   );
 };
