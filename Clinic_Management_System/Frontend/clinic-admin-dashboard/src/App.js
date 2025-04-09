@@ -36,8 +36,12 @@ const App = () => {
     { id: 2, turn: 2, date: "2025-03-01", clinicName: "مصر الجديدة", type: "كشف",dayOfWeek: "Saturday", cancelled: false, success: false,patientId:2, patientName: "Jane Smith" },
     { id: 3, turn: 1, date: "2025-03-02", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false,patientId:1 ,patientName: "John Doe" },
     { id: 4, turn: 2, date: "2025-03-02", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
-    { id: 4, turn: 2, date: "2024-03-02", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
-    { id: 4, turn: 2, date: "2025-03-02", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" }
+    { id: 5, turn: 2, date: "2024-03-02", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
+    { id: 6, turn: 2, date: "2025-03-03", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
+    { id: 7, turn: 1, date: "2025-04-08", clinicName: "مصر الجديدة", type: "كشف", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:1,patientName: "John Doe" },
+    { id: 8, turn: 2, date: "2025-04-08", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
+    { id: 9, turn: 3, date: "2025-04-08", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" }
+  
   ]);
 const [payments, setPayments] = useState([
   { id: 1, patientName: "John Doe", amount: 200, date: "2025-03-05", status: "Pending" },
@@ -52,23 +56,28 @@ const [payments, setPayments] = useState([
 
   return (
     <div className="app">
-      {role && <Sidebar />}
-      <div className="content">
-        {role && <Navbar onLogout={handleLogout} />}
+    {role && <Sidebar />}
+    <div className="content">
+      {role && <div className="navbar"><Navbar onLogout={handleLogout} /></div>}
+      
+      <div className="scrollable-content">
         <Routes>
-        <Route 
-  path="/" 
-  element={role === "admin" ? <Dashboard appointments={appointments} /> : role === "receptionist" ? <Patients patients={patients} setPatients={setPatients} /> : <Navigate to="/login" />} 
-/>
+          <Route 
+            path="/" 
+            element={role === "admin" 
+              ? <Dashboard appointments={appointments} setAppointments={setAppointments} patients={patients} /> 
+              : role === "receptionist" 
+              ? <Patients patients={patients} setPatients={setPatients} /> 
+              : <Navigate to="/login" />} 
+          />
           <Route 
             path="/patients" 
             element={role ? <Patients patients={patients} setPatients={setPatients} /> : <Navigate to="/login" />} 
           />
-        <Route 
-  path="/patients/:id" 
-  element={role ? <Profile patients={patients} appointments={appointments} setAppointments={setAppointments} /> : <Navigate to="/login" />} 
-/>
-
+          <Route 
+            path="/patients/:id" 
+            element={role ? <Profile patients={patients} appointments={appointments} setAppointments={setAppointments} /> : <Navigate to="/login" />} 
+          />
           <Route 
             path="/add-patient/:id?" 
             element={role ? <AddPatient patients={patients} setPatients={setPatients} /> : <Navigate to="/login" />} 
@@ -77,15 +86,19 @@ const [payments, setPayments] = useState([
             path="/appointments" 
             element={role === "admin" ? <Appointments appointments={appointments} setAppointments={setAppointments} /> : <Navigate to="/login" />} 
           />
-          <Route path="/settings" element={role === "admin" ? <Settings /> : <Navigate to="/login" />} />
           <Route 
-  path="/payments" 
-  element={role === "admin" ? <Payments appointments={appointments}/> : <Navigate to="/login" />} />
-  
-        <Route path="/login" element={<Login />} />
+            path="/settings" 
+            element={role === "admin" ? <Settings /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/payments" 
+            element={role === "admin" ? <Payments appointments={appointments} /> : <Navigate to="/login" />} 
+          />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </div>
     </div>
+  </div>
   );
 };
 

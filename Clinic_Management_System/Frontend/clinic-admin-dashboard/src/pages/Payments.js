@@ -1,27 +1,50 @@
 import React, { useState, useEffect } from "react";
-import "../styles/Payments.css"; // Ensure you have styling for this page
+import { jsPDF } from "jspdf";
+import "../styles/Payments.css";
 
 const Payments = ({ appointments }) => {
   const [payments, setPayments] = useState([]);
 
-  // Generate payments from appointments
   useEffect(() => {
     const generatedPayments = appointments.map((appointment) => ({
       id: appointment.id,
       patientName: appointment.patientName,
       amount: appointment.type === "كشف" ? 300 : 0,
       date: appointment.date,
-      status: "Pending", // Default status
+      status: "Pending",
     }));
     setPayments(generatedPayments);
   }, [appointments]);
 
-  // Handle Payment Status Change
+  // 🧾 PDF Generation Function
+  const generateReceipt = (payment) => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("Clinic Payment Receipt", 20, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Receipt ID: ${payment.id}`, 20, 40);
+    doc.text(`Patient Name: ${payment.patientName}`, 20, 50);
+    doc.text(`Date: ${payment.date}`, 20, 60);
+    doc.text(`Amount Paid: $${payment.amount}`, 20, 70);
+    doc.text(`Status: ${payment.status}`, 20, 80);
+    doc.text("Thank you for your visit!", 20, 100);
+
+    doc.save(`Receipt_${payment.patientName}_${payment.id}.pdf`);
+  };
+
   const updatePaymentStatus = (id, status) => {
     setPayments((prevPayments) =>
-      prevPayments.map((payment) =>
-        payment.id === id ? { ...payment, status } : payment
-      )
+      prevPayments.map((payment) => {
+        if (payment.id === id) {
+          const updated = { ...payment, status };
+          if (status === "Paid") {
+            generateReceipt(updated);
+          }
+          return updated;
+        }
+        return payment;
+      })
     );
   };
 
@@ -29,7 +52,6 @@ const Payments = ({ appointments }) => {
     <div className="payments-container">
       <h2>Payments</h2>
 
-      {/* Payments Table */}
       <table className="payments-table">
         <thead>
           <tr>

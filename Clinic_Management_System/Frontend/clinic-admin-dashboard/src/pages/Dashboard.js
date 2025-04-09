@@ -1,130 +1,223 @@
+// Dashboard.js
 import React, { useState, useEffect } from "react";
-import { FaUserMd, FaCalendarCheck, FaDollarSign, FaMoneyCheckAlt } from "react-icons/fa";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  FaUserMd,
+  FaCalendarCheck,
+  FaDollarSign,
+  FaCheckCircle,
+  FaClock,
+  FaChevronLeft,
+  FaChevronRight,
+} from "react-icons/fa";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import "../styles/Dashboard.css";
 
-// Ensure all months are included in the data
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const ITEMS_PER_SLIDE = 3; // Adjust as needed
 
-const Dashboard = ({ appointments }) => {
-  // State for selected year
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());  // Default to current year
+const Dashboard = ({ appointments, setAppointments, patients }) => {
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const todayDate = new Date().toISOString().split("T")[0];
 
-  // Handle Year Change
-  const handleYearChange = (event) => {
-    setSelectedYear(Number(event.target.value));  // Ensure the value is a number
+  const todaysAppointments = appointments.filter(app => app.date === todayDate);
+  const pendingAppointments = todaysAppointments.filter(app => !app.success);
+  const successfulAppointments = todaysAppointments.filter(app => app.success);
+
+  const pendingExaminations = pendingAppointments.filter(app => app.type === "كشف");
+  const pendingConsultations = pendingAppointments.filter(app => app.type === "استشارة");
+
+  const successfulExaminations = successfulAppointments.filter(app => app.type === "كشف");
+  const successfulConsultations = successfulAppointments.filter(app => app.type === "استشارة");
+
+  const handleNext = () => {
+    setCurrentIndex((prevIndex) =>
+      Math.min(prevIndex + 1, Math.ceil(pendingAppointments.length / ITEMS_PER_SLIDE) - 1)
+    );
   };
 
-  // Generate appointment data per month for the selected year
+  const handlePrev = () => {
+    setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+  };
+
+  const startIndex = currentIndex * ITEMS_PER_SLIDE;
+  const visibleAppointments = pendingAppointments.slice(startIndex, startIndex + ITEMS_PER_SLIDE);
+
   const appointmentData = months.map((month, index) => {
-    const monthAppointments = appointments.filter(appointment => {
-      const appointmentDate = new Date(appointment.date);
-      const appointmentYear = appointmentDate.getFullYear();
-      const appointmentMonth = appointmentDate.getMonth();
-      return appointmentYear === selectedYear && appointmentMonth === index;
+    const monthAppointments = appointments.filter(app => {
+      const date = new Date(app.date);
+      return date.getFullYear() === selectedYear && date.getMonth() === index;
     });
 
     return {
       day: month,
-      appointments: monthAppointments.length
+      appointments: monthAppointments.length,
     };
   });
 
-  // Log appointmentData to debug
-  useEffect(() => {
-    console.log("Filtered Appointment Data for Year", selectedYear, appointmentData);
-  }, [appointmentData, selectedYear]);
-
-  const pendingPayments = [
-    { id: 1, patient: "John Doe", amount: "$200", dueDate: "Mar 15" },
-    { id: 2, patient: "Jane Smith", amount: "$350", dueDate: "Mar 18" },
-    { id: 3, patient: "Emily Johnson", amount: "$150", dueDate: "Mar 20" }
-  ];
-
+  const handleYearChange = (e) => {
+    setSelectedYear(Number(e.target.value));
+  };
+  const markAsCompleted = (id) => {
+    setAppointments((prevAppointments) =>
+      prevAppointments.map((appt) =>
+        appt.id === id ? { ...appt, success: true, cancelled: false } : appt
+      )
+    );
+  };
   return (
     <div className="dashboard">
-      {/* 📊 Top Statistics */}
+      <h1>Control Panel</h1>
+
       <div className="stats-grid">
         <div className="stat-card">
           <FaUserMd className="stat-icon" />
           <div>
-            <h3>1,234</h3>
             <p>Total Patients</p>
+            <h3>{patients.length}</h3>
           </div>
         </div>
         <div className="stat-card">
           <FaCalendarCheck className="stat-icon" />
           <div>
-            <h3>23</h3>
-            <p>Today's Appointments</p>
+            <p>All Examinations</p>
+            <h3>{appointments.filter(app => app.type === "كشف").length}</h3>
+          </div>
+        </div>
+        <div className="stat-card">
+          <FaCalendarCheck className="stat-icon" />
+          <div>
+            <p>All Consultations</p>
+            <h3>{appointments.filter(app => app.type === "استشارة").length}</h3>
           </div>
         </div>
         <div className="stat-card">
           <FaDollarSign className="stat-icon" />
           <div>
-            <h3>$50,890</h3>
-            <p>Revenue This Month</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <FaMoneyCheckAlt className="stat-icon" />
-          <div>
-            <h3>$8,200</h3>
-            <p>Pending Payments</p>
+            <p>Total Income</p>
+            <h3>{appointments.filter(app => app.type === "كشف" && app.success).length * 300}</h3>
           </div>
         </div>
       </div>
 
-      {/* 📈 Charts Section */}
-      <div className="charts-container">
-        {/* Appointment Trends */}
-        <div className="chart-card">
-          <h3>Appointment Trends</h3>
-          
-          {/* Year Selector */}
+      <h1>Today's Statistics</h1>
+      <div className="stats-grid">
+        <div className="stat-card">
+          <FaClock className="stat-icon" />
           <div>
-            <label>Select Year:</label>
-            <select value={selectedYear} onChange={handleYearChange}>
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
-              <option value="2023">2023</option>
-              {/* Add more years if necessary */}
-            </select>
+            <p>Pending Appointments</p>
+            <h3>{pendingAppointments.length}</h3>
           </div>
-          
+        </div>
+        <div className="stat-card">
+          <FaClock className="stat-icon" />
+          <div>
+            <p>Pending Examinations</p>
+            <h3>{pendingExaminations.length}</h3>
+          </div>
+        </div>
+        <div className="stat-card">
+          <FaClock className="stat-icon" />
+          <div>
+            <p>Pending Consultations</p>
+            <h3>{pendingConsultations.length}</h3>
+          </div>
+        </div>
+        <div className="stat-card">
+          <FaCheckCircle className="stat-icon" />
+          <div>
+            <p>Successful Appointments</p>
+            <h3>{successfulAppointments.length}</h3>
+          </div>
+        </div>
+        <div className="stat-card">
+          <FaCheckCircle className="stat-icon" />
+          <div>
+            <p>Successful Examinations</p>
+            <h3>{successfulExaminations.length}</h3>
+          </div>
+        </div>
+        <div className="stat-card">
+          <FaCheckCircle className="stat-icon" />
+          <div>
+            <p>Successful Consultations</p>
+            <h3>{successfulConsultations.length}</h3>
+          </div>
+        </div>
+      </div>
+
+      <h2>Today's Pending Appointments</h2>
+      <div id="carouselExampleControls" className="carousel slide" data-bs-ride="carousel">
+        <div className="carousel-inner">
+          {pendingAppointments.length > 0 ? (
+            pendingAppointments.map((app, index) => (
+              <div className={`carousel-item ${index === 0 ? 'active' : ''}`} key={app.id}>
+                <div className="carousel-item-content">
+                  <p><strong>{app.patientName}</strong></p>
+                  <p>Turn: {app.turn}</p>
+                  {/* Add other appointment details you want to display */}
+                  <button className="complete-btn" onClick={() => markAsCompleted(app.id)}>Completed</button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="carousel-item active">
+              <p>No pending appointments for today.</p>
+            </div>
+          )}
+        </div>
+        {pendingAppointments.length > 1 && (
+          <>
+            <button
+              className="carousel-control-prev"
+              type="button"
+              data-bs-target="#carouselExampleControls"
+              data-bs-slide="prev"
+            >
+              <span className="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span className="visually-hidden">Previous</span>
+            </button>
+            <button
+              className="carousel-control-next"
+              type="button"
+              data-bs-target="#carouselExampleControls"
+              data-bs-slide="next"
+            >
+              <span className="carousel-control-next-icon" aria-hidden="true"></span>
+              <span className="visually-hidden">Next</span>
+            </button>
+          </>
+        )}
+      </div>
+
+      <div className="charts-container">
+        <div className="chart-card">
+          <h3>Monthly Appointment Trends</h3>
+          <label>Select Year:</label>
+          <select value={selectedYear} onChange={handleYearChange}>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+          </select>
+
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={appointmentData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="appointments" fill="#8884d8" />
+              <Bar dataKey="appointments" fill="#4CAF50" />
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
-
-      {/* 📌 Pending Payments */}
-      <div className="pending-payments">
-        <h3>Pending Payments</h3>
-        <table className="payments-table">
-          <thead>
-            <tr>
-              <th>Patient</th>
-              <th>Amount</th>
-              <th>Due Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pendingPayments.map((payment) => (
-              <tr key={payment.id}>
-                <td>{payment.patient}</td>
-                <td>{payment.amount}</td>
-                <td>{payment.dueDate}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </div>
   );
