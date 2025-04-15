@@ -1,210 +1,180 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import "../styles/AddAppointmentPage.css";
+import { useNavigate, useParams } from "react-router-dom";
+import "../styles/AddAppointmentPage.css"; // Import CSS for styling
+import { Modal, Button } from "react-bootstrap"; // Import Bootstrap Modal components
 
-
-const AddAppointment = ({ patients, appointments, setAppointments }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const patientIdFromProfile = new URLSearchParams(location.search).get("patientId");
-  const [patientName, setPatientName] = useState("");
-  const [patientId, setPatientId] = useState(patientIdFromProfile || "");
-  const [date, setDate] = useState(new Date());
+const AddAppoiment = ({ patients, appointments, setAppointments }) => {
   const [turn, setTurn] = useState("");
+  const [date, setDate] = useState("");
   const [type, setType] = useState("كشف");
   const [clinicName, setClinicName] = useState("مطرية");
-  const [error, setError] = useState("");
-  const turns = Array.from({ length: 30 }, (_, i) => i + 1);
-  const [reservedTurns, setReservedTurns] = useState([]);
-  const [hasAppointmentOnDate, setHasAppointmentOnDate] = useState(false);
+  const [patientId, setPatientId] = useState(null); // State for selected patient
+  const [showError, setShowError] = useState(false); // State to control modal visibility
+  const [errorMessage, setErrorMessage] = useState(""); // To store error message
+  const [cost, setCost] = useState(0); // State to hold the calculated cost
+  const navigate = useNavigate();
+  const { id } = useParams(); // Get the patientId from the route
 
+  // UseEffect to set patientId when the component mounts or route changes
   useEffect(() => {
-    if (patientIdFromProfile) {
-      const patient = patients.find((p) => p.id === parseInt(patientIdFromProfile));
-      if (patient) {
-        setPatientName(patient.name);
-        setPatientId(patient.id);
-      } else {
-        setError("Patient not found.");
-      }
-    }
-  }, [patientIdFromProfile, patients]);
+    setPatientId(Number(id)); // Set patientId from route
+  }, [id]);
 
-  useEffect(() => {
-    // Update reserved turns and check if patient has an appointment on the selected date
-    const formattedDate = date.toLocaleDateString();
-    const appointmentsOnSelectedDate = appointments.filter(
-      (appt) => appt.date === formattedDate && appt.clinicName === clinicName
+  // Function to check if the patient already has an appointment on the selected date
+  const validateAppointment = (patientId, date) => {
+    const existingAppointment = appointments.find(
+      (appointment) => appointment.patientId === patientId && appointment.date === date
     );
-    const reservedTurnNumbers = appointmentsOnSelectedDate.map((appt) => appt.turn);
-    setReservedTurns(reservedTurnNumbers);
+    return existingAppointment;
+  };
 
-    const patientHasAppointment = appointmentsOnSelectedDate.some(
-      (appt) => appt.patientId === parseInt(patientId)
-    );
-    setHasAppointmentOnDate(patientHasAppointment);
-  }, [date, appointments, clinicName, patientId]);
-
-  const handleTurnSelect = (selectedTurn) => {
-    if (!reservedTurns.includes(selectedTurn)) {
-      setTurn(selectedTurn.toString());
-    } else {
-      alert(`Turn ${selectedTurn} is already reserved for this date and clinic.`);
-      setTurn("");
+  // Function to calculate the cost based on the appointment type
+  const calculatePrice = (appointmentType) => {
+    if (appointmentType === "كشف") {
+      return 200; // Fixed cost for "كشف"
     }
+    return 0; // Default cost for other types (if needed)
   };
 
-  const handleDateChange = (newDate) => {
-    setDate(newDate);
-    setTurn("");
-  };
-
-  const handleClinicChange = (e) => {
-    setClinicName(e.target.value);
-    setTurn("");
-  };
-
+  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!patientId || !date || !turn || !type || !clinicName) {
-      setError("Please fill in all fields.");
+    if (!patientId) {
+      setErrorMessage("Please select a patient.");
+      setShowError(true);
       return;
     }
 
-    if (hasAppointmentOnDate) {
-      alert("This patient already has an appointment on the selected date.");
-      return;
+    if (validateAppointment(patientId, date)) {
+      // If the patient already has an appointment, show error message
+      setErrorMessage("Patient already has an appointment on this date.");
+      setShowError(true); // Show the modal
+    } else {
+      // If no conflict, proceed to add the appointment
+      const newAppointment = {
+        id: appointments.length + 1,
+        turn,
+        date,
+        clinicName,
+        type,
+        patientId,
+        patientName: patients.find((patient) => patient.id === patientId)?.name || "Unknown", // Fetching patient name by ID
+        dayOfWeek: new Date(date).toLocaleString("en-us", { weekday: "long" }),
+        cost, // Include the calculated cost
+        cancelled: false,
+        success: false,
+      };
+
+      setAppointments([...appointments, newAppointment]);
+      navigate("/appointments"); // Redirect to appointments page
     }
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const dayOfMonth = String(date.getDate()).padStart(2, '0');
-    const formattedDate = date.toLocaleDateString();
-
-    const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const dayIndex = date.getDay();
-    const dayOfWeek = daysOfWeek[dayIndex];
-
-    const newAppointment = {
-      id: appointments.length + 1,
-      patientId: parseInt(patientId),
-      date: formattedDate,
-      time: turn,
-      type: type,
-      clinicName: clinicName,
-      status: "Pending",
-      patientName: patientName,
-      dayOfWeek: dayOfWeek,
-      turn: parseInt(turn),
-    };
-
-    setAppointments([...appointments, newAppointment]);
-    navigate(`/patients/${patientId}`);
   };
 
-  const handleCancel = () => {
-    navigate(`/patients/${patientId}`);
-  };
+  // Update the cost when the appointment type changes
+  useEffect(() => {
+    const calculatedCost = calculatePrice(type);
+    setCost(calculatedCost); // Update the cost state
+  }, [type]); // Recalculate price whenever type changes
 
-  // Custom input component
-  const CustomDateInput = React.forwardRef(({ value, onClick }, ref) => (
-    <input
-      ref={ref}
-      value={value}
-      onClick={onClick}
-      readOnly
-      className="custom-date-input"
-    />
-  ));
+  // Find the patient by ID (if available)
+  const patient = patients.find((p) => p.id === patientId);
 
   return (
-    <div className="add-appointment-page">
-      <h2>Add New Appointment</h2>
-      {error && <p className="error-message">{error}</p>}
+    <div className="add-appointment-container">
+      <h1>Add New Appointment</h1>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="patientName">Patient Name:</label>
+          <label>Patient Name</label>
+          {/* Display the patient name if patientId is set */}
           <input
             type="text"
-            id="patientName"
-            value={patientName}
+            value={patient ? patient.name : "Loading..."}
             readOnly
           />
         </div>
+
         <div className="form-group">
-          <label htmlFor="patientId">Patient ID:</label>
+          <label>Date</label>
           <input
-            type="text"
-            id="patientId"
-            value={patientId}
-            readOnly
+            type="date"
+            className="form-control"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
           />
         </div>
+
         <div className="form-group">
-          <label htmlFor="date">Date:</label>
-          <DatePicker
-            id="date"
-            selected={date}
-            onChange={handleDateChange}
-            dateFormat="yyyy-MM-dd"
-            customInput={<CustomDateInput />}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="turn">Turn:</label>
-          <div className="turn-selection">
-            {turns.map((t) => (
-              <div
-                key={t}
-                className={`turn-chair ${turn === t.toString() ? 'selected' : ''} ${
-                  reservedTurns.includes(t) ? 'reserved' : ''
-                }`}
-                onClick={() => handleTurnSelect(t)}
+          <label>Turn</label>
+          <div className="chairs-container">
+            {[...Array(30).keys()].map((num) => (
+              <button
+                key={num}
+                type="button"
+                className={`chair-button ${turn === num + 1 ? "selected" : ""}`}
+                onClick={() => setTurn(num + 1)}
               >
-                {t}
-              </div>
+                {num + 1}
+              </button>
             ))}
           </div>
-          {turn && <p className="selected-turn">Selected Turn: {turn}</p>}
-          {!turn && <p className="select-turn-message">Select a turn (1-30)</p>}
-          {hasAppointmentOnDate && (
-            <p className="error-message">This patient already has an appointment on this date.</p>
-          )}
         </div>
+
         <div className="form-group">
-          <label htmlFor="type">Type:</label>
+          <label>Appointment Type</label>
           <select
-            id="type"
-            value={type}
+            className="form-control"
             onChange={(e) => setType(e.target.value)}
+            value={type}
+            required
           >
             <option value="كشف">كشف</option>
             <option value="استشارة">استشارة</option>
           </select>
         </div>
+
         <div className="form-group">
-          <label htmlFor="clinicName">Clinic:</label>
+          <label>Clinic</label>
           <select
-            id="clinicName"
+            className="form-control"
+            onChange={(e) => setClinicName(e.target.value)}
             value={clinicName}
-            onChange={handleClinicChange}
+            required
           >
             <option value="مطرية">مطرية</option>
-            <option value="مصرالجديدة">مصرالجديدة</option>
+            <option value="مصر الجديدة">مصر الجديدة</option>
           </select>
         </div>
-        <div className="form-actions">
-          <button type="submit" disabled={!turn || hasAppointmentOnDate}>
-            Save Appointment
-          </button>
-          <button type="button" onClick={handleCancel}>Cancel</button>
+
+        {/* Display the calculated cost */}
+        <div className="form-group">
+          <label>Appointment Cost</label>
+          <input
+            type="text"
+            className="form-control"
+            value={cost} // Display the cost dynamically
+            readOnly
+          />
         </div>
+
+        <button type="submit" className="btn btn-primary">Add Appointment</button>
       </form>
+
+      {/* Bootstrap Modal for Error Message */}
+      <Modal show={showError} onHide={() => setShowError(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Error</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>{errorMessage}</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowError(false)}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
 
-export default AddAppointment;
+export default AddAppoiment;

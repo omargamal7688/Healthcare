@@ -13,7 +13,7 @@ import "./App.css";
 import AddPatient from "./pages/AddPatient";
 import Payments from "./pages/Payments";
 import AddAppoinment from "./pages/AddAppoiment";
-import PaymobPaymentForm from "./pages/PaymobPaymentForm";
+
 
 // ✅ Role Context
 const RoleContext = createContext();
@@ -41,14 +41,26 @@ const App = () => {
     { id: 4, turn: 2, date: "2025-03-02", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
     { id: 5, turn: 2, date: "2024-03-02", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
     { id: 6, turn: 2, date: "2025-03-03", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
-    { id: 7, turn: 1, date: "2025-04-08", clinicName: "مصر الجديدة", type: "كشف", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:1,patientName: "John Doe" },
-    { id: 8, turn: 2, date: "2025-04-08", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
-    { id: 9, turn: 3, date: "2025-04-08", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" }
+    { id: 7, turn: 1, date: "2025-04-10", clinicName: "مصر الجديدة", type: "كشف", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:1,patientName: "John Doe" },
+    { id: 8, turn: 2, date: "2025-04-10", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
+    { id: 9, turn: "3", date: "2025-04-10", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" }
   ]);
-const [payments, setPayments] = useState([
-  { id: 1, patientName: "John Doe", amount: 200, date: "2025-03-05", status: "Pending" },
-  { id: 2, patientName: "Jane Smith", amount: 150, date: "2025-03-06", status: "Paid" },
-]);
+  const payments = [
+    {
+      paymentId: 1,
+      patientId: 1,
+      appointmentId: 1,
+      cost: 200,
+      date: '2024-04-14',
+      time: '10:00 AM',
+      turn: 1,
+      type: 'كشف',
+      clinic: 'مطرية',
+      status: 'Paid', // or 'Pending', 'Failed', etc.
+    },
+    // More payments
+  ];
+  
 
   // ✅ Handle Logout
   const handleLogout = () => {
@@ -92,20 +104,15 @@ const [payments, setPayments] = useState([
             path="/settings"
             element={role === "admin" ? <Settings /> : <Navigate to="/login" />}
           />
-            <Route
-            path="/Paymob"
-            element={role === "admin" ? <PaymobPaymentForm /> : <Navigate to="/login" />}
-          />
           
-
            <Route
-            path="/add-appointment"
+            path="/add-appointment/:id"
             element={role === "admin" ? <AddAppoinment patients={patients} appointments={appointments} setAppointments={setAppointments} /> : <Navigate to="/login" />}
           />
-          <Route
-            path="/payments"
-            element={role === "admin" ? <Payments appointments={appointments} /> : <Navigate to="/login" />}
-          />
+        <Route
+  path="/payments"
+  element={role === "admin" ? <Payments payments={payments} appointments={appointments} /> : <Navigate to="/login" />}
+/>
           <Route path="/login" element={<Login />} />
         </Routes>
       </div>

@@ -69,68 +69,40 @@
     color: red;
     margin-bottom: 10px;
   }
-  .turn-selection {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); /* Responsive grid */
-    gap: 8px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-  }
-  
-  .turn-chair {
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 40px;
-    cursor: pointer;
-    font-size: 0.9em;
-    transition: background-color 0.3s ease;
-  }
-  
-  .turn-chair:hover {
-    background-color: #ddd;
-  }
-  
-  .turn-chair.selected {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
-  }
-  
-  .selected-turn {
-    margin-top: 10px;
-    font-weight: bold;
-    color: #007bff;
-  }
-  
-  .select-turn-message {
-    color: #777;
-    margin-top: 10px;
-  }
-  .custom-date-input {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1em;
-    width: 100%;
-    box-sizing: border-box;
-    cursor: pointer; /* Indicate it's clickable */
-  }
-  
-  .custom-date-input:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-  }.turn-chair.reserved {
-    background-color: #ccc; /* Or any other color to indicate reserved */
-    color: #555;
-    cursor: not-allowed;
-    border-color: #aaa;
-  }
-  
-  .turn-chair.reserved:hover {
-    background-color: #ccc;
-  }
+  /* Style for chair buttons */
+.chairs-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.chair-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.chair-button:hover {
+  background-color: #e0e0e0;
+}
+
+.chair-button.selected {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.chair-button:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+}

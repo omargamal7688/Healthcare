@@ -1,13 +1,11 @@
 // Dashboard.js
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   FaUserMd,
   FaCalendarCheck,
   FaDollarSign,
   FaCheckCircle,
-  FaClock,
-  FaChevronLeft,
-  FaChevronRight,
+  FaClock
 } from "react-icons/fa";
 import {
   BarChart,
@@ -21,41 +19,21 @@ import {
 import "../styles/Dashboard.css";
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const ITEMS_PER_SLIDE = 3; // Adjust as needed
+
 
 const Dashboard = ({ appointments, setAppointments, patients }) => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [currentIndex, setCurrentIndex] = useState(0);
   const todayDate = new Date().toISOString().split("T")[0];
-
   const todaysAppointments = appointments.filter(app => app.date === todayDate);
   const pendingAppointments = todaysAppointments.filter(app => !app.success);
   const successfulAppointments = todaysAppointments.filter(app => app.success);
-
   const pendingExaminations = pendingAppointments.filter(app => app.type === "كشف");
   const pendingConsultations = pendingAppointments.filter(app => app.type === "استشارة");
-
   const successfulExaminations = successfulAppointments.filter(app => app.type === "كشف");
   const successfulConsultations = successfulAppointments.filter(app => app.type === "استشارة");
-
-  const handleNext = () => {
-    setCurrentIndex((prevIndex) =>
-      Math.min(prevIndex + 1, Math.ceil(pendingAppointments.length / ITEMS_PER_SLIDE) - 1)
-    );
-  };
-
-  const handlePrev = () => {
-    setCurrentIndex((prevIndex) => Math.max(prevIndex - 1, 0));
-  };
-
-  const startIndex = currentIndex * ITEMS_PER_SLIDE;
-  const visibleAppointments = pendingAppointments.slice(startIndex, startIndex + ITEMS_PER_SLIDE);
-
   const appointmentData = months.map((month, index) => {
-    const monthAppointments = appointments.filter(app => {
-      const date = new Date(app.date);
-      return date.getFullYear() === selectedYear && date.getMonth() === index;
-    });
+    const monthAppointments = appointments.filter(app => {const date = new Date(app.date);
+      return date.getFullYear() === selectedYear && date.getMonth() === index;});
 
     return {
       day: month,

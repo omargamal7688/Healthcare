@@ -1,6 +1,6 @@
 // Profile.js
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { FaWhatsapp, FaPlusCircle } from "react-icons/fa";
 import "../styles/Profile.css";
 
@@ -127,6 +127,9 @@ const Profile = ({ patients, appointments, setAppointments }) => {
       <button className="make-appointment-btn" onClick={handleMakeNewAppointment}>
         <FaPlusCircle className="plus-icon" /> Make New Appointment
       </button>
+      <Link to={`/add-appointment/${patient.id}`}>
+  <button className="add-btn">Add New Appointment</button>
+</Link>
 
       <button className="back-button" onClick={() => navigate("/patients")}>
         Back to Patients

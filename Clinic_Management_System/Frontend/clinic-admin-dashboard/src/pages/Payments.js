@@ -2,19 +2,12 @@ import React, { useState, useEffect } from "react";
 import { jsPDF } from "jspdf";
 import "../styles/Payments.css";
 
-const Payments = ({ appointments }) => {
-  const [payments, setPayments] = useState([]);
+const Payments = ({ payments, patients }) => {
+  const [paymentList, setPaymentList] = useState(payments);
 
   useEffect(() => {
-    const generatedPayments = appointments.map((appointment) => ({
-      id: appointment.id,
-      patientName: appointment.patientName,
-      amount: appointment.type === "كشف" ? 300 : 0,
-      date: appointment.date,
-      status: "Pending",
-    }));
-    setPayments(generatedPayments);
-  }, [appointments]);
+    setPaymentList(payments);
+  }, [payments]);
 
   // 🧾 PDF Generation Function
   const generateReceipt = (payment) => {
@@ -23,20 +16,31 @@ const Payments = ({ appointments }) => {
     doc.text("Clinic Payment Receipt", 20, 20);
 
     doc.setFontSize(12);
-    doc.text(`Receipt ID: ${payment.id}`, 20, 40);
-    doc.text(`Patient Name: ${payment.patientName}`, 20, 50);
-    doc.text(`Date: ${payment.date}`, 20, 60);
-    doc.text(`Amount Paid: $${payment.amount}`, 20, 70);
-    doc.text(`Status: ${payment.status}`, 20, 80);
-    doc.text("Thank you for your visit!", 20, 100);
+    doc.text(`Receipt ID: ${payment.paymentId}`, 20, 40);
+    doc.text(`Patient Name: ${getPatientName(payment.patientId)}`, 20, 50);
+    doc.text(`Appointment ID: ${payment.appointmentId}`, 20, 60);
+    doc.text(`Cost: $${payment.cost}`, 20, 70);
+    doc.text(`Date: ${payment.date}`, 20, 80);
+    doc.text(`Time: ${payment.time}`, 20, 90);
+    doc.text(`Turn: ${payment.turn}`, 20, 100);
+    doc.text(`Type: ${payment.type}`, 20, 110);
+    doc.text(`Clinic: ${payment.clinic}`, 20, 120);
+    doc.text(`Status: ${payment.status}`, 20, 130);
+    doc.text("Thank you for your visit!", 20, 140);
 
-    doc.save(`Receipt_${payment.patientName}_${payment.id}.pdf`);
+    doc.save(`Receipt_${getPatientName(payment.patientId)}_${payment.paymentId}.pdf`);
   };
 
-  const updatePaymentStatus = (id, status) => {
-    setPayments((prevPayments) =>
+  // Helper function to get patient name from patientId
+  const getPatientName = (patientId) => {
+    const patient = patients.find((p) => p.id === patientId);
+    return patient ? patient.name : "Unknown Patient";
+  };
+
+  const updatePaymentStatus = (paymentId, status) => {
+    setPaymentList((prevPayments) =>
       prevPayments.map((payment) => {
-        if (payment.id === id) {
+        if (payment.paymentId === paymentId) {
           const updated = { ...payment, status };
           if (status === "Paid") {
             generateReceipt(updated);
@@ -55,26 +59,38 @@ const Payments = ({ appointments }) => {
       <table className="payments-table">
         <thead>
           <tr>
-            <th>Patient</th>
-            <th>Amount</th>
+            <th>Payment ID</th>
+            <th>Patient Name</th>
+            <th>Appointment ID</th>
+            <th>Cost</th>
             <th>Date</th>
+            <th>Time</th>
+            <th>Turn</th>
+            <th>Type</th>
+            <th>Clinic</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {payments.length > 0 ? (
-            payments.map((payment) => (
-              <tr key={payment.id} className={payment.status.toLowerCase()}>
-                <td>{payment.patientName}</td>
-                <td>{payment.amount > 0 ? `$${payment.amount}` : "Free"}</td>
+          {paymentList.length > 0 ? (
+            paymentList.map((payment) => (
+              <tr key={payment.paymentId} className={payment.status.toLowerCase()}>
+                <td>{payment.paymentId}</td>
+                <td>{getPatientName(payment.patientId)}</td>
+                <td>{payment.appointmentId}</td>
+                <td>{payment.cost > 0 ? `$${payment.cost}` : "Free"}</td>
                 <td>{payment.date}</td>
+                <td>{payment.time}</td>
+                <td>{payment.turn}</td>
+                <td>{payment.type}</td>
+                <td>{payment.clinic}</td>
                 <td>{payment.status}</td>
                 <td>
                   {payment.status === "Pending" && (
                     <button
                       className="pay-btn"
-                      onClick={() => updatePaymentStatus(payment.id, "Paid")}
+                      onClick={() => updatePaymentStatus(payment.paymentId, "Paid")}
                     >
                       Mark as Paid
                     </button>
@@ -82,7 +98,7 @@ const Payments = ({ appointments }) => {
                   {payment.status === "Paid" && (
                     <button
                       className="pending-btn"
-                      onClick={() => updatePaymentStatus(payment.id, "Pending")}
+                      onClick={() => updatePaymentStatus(payment.paymentId, "Pending")}
                     >
                       Set to Pending
                     </button>
@@ -92,7 +108,7 @@ const Payments = ({ appointments }) => {
             ))
           ) : (
             <tr>
-              <td colSpan="5" className="no-results">No payments found.</td>
+              <td colSpan="11" className="no-results">No payments found.</td>
             </tr>
           )}
         </tbody>
