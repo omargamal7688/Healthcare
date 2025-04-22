@@ -168,7 +168,7 @@ const App = () => {
               <Route
                 path="/payments"
                 element={role === "receptionist" || role === "admin"
-                  ? <Payments patients={patients} payments={payments} onAddPayment={addPayment} onUpdatePayment={updatePayment} onDeletePayment={deletePayment} />
+                  ? <Payments patients={patients}  setPayments={setPayments} payments={payments} onAddPayment={addPayment} onUpdatePayment={updatePayment} onDeletePayment={deletePayment} />
                   : <Navigate to="/login" />}
               />
               <Route path="/login" element={<Login onLogin={(selectedRole) => setRole(selectedRole)} />} />
