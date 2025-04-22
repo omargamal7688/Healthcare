@@ -1,118 +1,194 @@
-import React, { useState, useEffect } from "react";
-import { jsPDF } from "jspdf";
+import React, { useState } from "react";
 import "../styles/Payments.css";
+import { useTranslation } from "react-i18next";
+import { Modal, Button } from "react-bootstrap";
+import { PAYMOB_API_KEY, INTEGRATION_ID, IFRAME_ID } from "../config";
 
-const Payments = ({ payments, patients }) => {
-  const [paymentList, setPaymentList] = useState(payments);
+const Payments = ({ payments, patients, setPayments }) => {
+  const { t } = useTranslation();
 
-  useEffect(() => {
-    setPaymentList(payments);
-  }, [payments]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState(null);
 
-  // 🧾 PDF Generation Function
-  const generateReceipt = (payment) => {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("Clinic Payment Receipt", 20, 20);
-
-    doc.setFontSize(12);
-    doc.text(`Receipt ID: ${payment.paymentId}`, 20, 40);
-    doc.text(`Patient Name: ${getPatientName(payment.patientId)}`, 20, 50);
-    doc.text(`Appointment ID: ${payment.appointmentId}`, 20, 60);
-    doc.text(`Cost: $${payment.cost}`, 20, 70);
-    doc.text(`Date: ${payment.date}`, 20, 80);
-    doc.text(`Time: ${payment.time}`, 20, 90);
-    doc.text(`Turn: ${payment.turn}`, 20, 100);
-    doc.text(`Type: ${payment.type}`, 20, 110);
-    doc.text(`Clinic: ${payment.clinic}`, 20, 120);
-    doc.text(`Status: ${payment.status}`, 20, 130);
-    doc.text("Thank you for your visit!", 20, 140);
-
-    doc.save(`Receipt_${getPatientName(payment.patientId)}_${payment.paymentId}.pdf`);
+  const handleOpenModal = (payment) => {
+    setSelectedPayment(payment);
+    setShowModal(true);
   };
 
-  // Helper function to get patient name from patientId
-  const getPatientName = (patientId) => {
-    const patient = patients.find((p) => p.id === patientId);
-    return patient ? patient.name : "Unknown Patient";
+  const handleCloseModal = () => {
+    setSelectedPayment(null);
+    setShowModal(false);
   };
 
-  const updatePaymentStatus = (paymentId, status) => {
-    setPaymentList((prevPayments) =>
-      prevPayments.map((payment) => {
-        if (payment.paymentId === paymentId) {
-          const updated = { ...payment, status };
-          if (status === "Paid") {
-            generateReceipt(updated);
-          }
-          return updated;
-        }
-        return payment;
-      })
-    );
+  const handlePaymentMethod = async (method) => {
+    if (!selectedPayment) return;
+
+    if (method === "cash") {
+      setPayments((prev) =>
+        prev.map((p) =>
+          p.paymentId === selectedPayment.paymentId
+            ? { ...p, status: "Paid" }
+            : p
+        )
+      );
+      handleCloseModal();
+    } else if (method === "visa") {
+      try {
+        const BASE_URL = "https://accept.paymob.com/api";
+
+        // 1. AUTH
+        const authResponse = await fetch(`${BASE_URL}/auth/tokens`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ api_key: PAYMOB_API_KEY }),
+        });
+        const { token } = await authResponse.json();
+
+        // 2. ORDER REGISTRATION
+        const orderResponse = await fetch(`${BASE_URL}/ecommerce/orders`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            auth_token: token,
+            delivery_needed: false,
+            amount_cents: selectedPayment.cost * 100,
+            currency: "EGP",
+            items: [],
+          }),
+        });
+        const { id: orderId } = await orderResponse.json();
+
+        // 3. PAYMENT KEY
+        const paymentKeyResponse = await fetch(`${BASE_URL}/acceptance/payment_keys`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            auth_token: token,
+            amount_cents: selectedPayment.cost * 100,
+            expiration: 3600,
+            order_id: orderId,
+            billing_data: {
+              apartment: "NA",
+              email: "omar@example.com",
+              floor: "NA",
+              first_name: "Omar",
+              street: "NA",
+              building: "NA",
+              phone_number: "01000000000",
+              shipping_method: "NA",
+              postal_code: "NA",
+              city: "Cairo",
+              country: "EG",
+              last_name: "Omar",
+              state: "Cairo",
+            },
+            currency: "EGP",
+            integration_id: INTEGRATION_ID,
+          }),
+        });
+
+        const { token: paymentToken } = await paymentKeyResponse.json();
+
+        // 4. OPEN IFRAME
+        window.open(
+          `https://accept.paymob.com/api/acceptance/iframes/${IFRAME_ID}?payment_token=${paymentToken}`,
+          "_blank"
+        );
+
+        handleCloseModal();
+      } catch (error) {
+        console.error("Paymob Payment Error:", error);
+        alert(t("visa_payment_error"));
+      }
+    }
   };
 
   return (
     <div className="payments-container">
-      <h2>Payments</h2>
+      <h1>{t("dashboard")}</h1>
+      <p>{t("welcome_clinic_admin")}</p>
 
       <table className="payments-table">
         <thead>
           <tr>
-            <th>Payment ID</th>
-            <th>Patient Name</th>
-            <th>Appointment ID</th>
-            <th>Cost</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Turn</th>
-            <th>Type</th>
-            <th>Clinic</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th>{t("payment_id")}</th>
+            <th>{t("patient_name")}</th>
+            <th>{t("appointment_id")}</th>
+            <th>{t("cost")}</th>
+            <th>{t("date")}</th>
+            <th>{t("status")}</th>
+            <th>{t("actions")}</th>
           </tr>
         </thead>
         <tbody>
-          {paymentList.length > 0 ? (
-            paymentList.map((payment) => (
-              <tr key={payment.paymentId} className={payment.status.toLowerCase()}>
-                <td>{payment.paymentId}</td>
-                <td>{getPatientName(payment.patientId)}</td>
-                <td>{payment.appointmentId}</td>
-                <td>{payment.cost > 0 ? `$${payment.cost}` : "Free"}</td>
-                <td>{payment.date}</td>
-                <td>{payment.time}</td>
-                <td>{payment.turn}</td>
-                <td>{payment.type}</td>
-                <td>{payment.clinic}</td>
-                <td>{payment.status}</td>
-                <td>
-                  {payment.status === "Pending" && (
-                    <button
-                      className="pay-btn"
-                      onClick={() => updatePaymentStatus(payment.paymentId, "Paid")}
-                    >
-                      Mark as Paid
-                    </button>
-                  )}
-                  {payment.status === "Paid" && (
-                    <button
-                      className="pending-btn"
-                      onClick={() => updatePaymentStatus(payment.paymentId, "Pending")}
-                    >
-                      Set to Pending
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))
+          {payments.length > 0 ? (
+            payments.map((payment) => {
+              const patient = patients.find((p) => p.id === payment.patientId);
+              const patientName = patient ? patient.name : t("unknown");
+
+              return (
+                <tr key={payment.paymentId}>
+                  <td>{payment.paymentId}</td>
+                  <td>{patientName}</td>
+                  <td>{payment.appointmentId}</td>
+                  <td>{payment.cost}</td>
+                  <td>{payment.date}</td>
+                  <td>{t(payment.status.toLowerCase())}</td>
+                  <td>
+                    {payment.status === "Pending" ? (
+                      <button
+                        className="btn btn-success"
+                        onClick={() => handleOpenModal(payment)}
+                      >
+                        {t("mark_as_paid")}
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-warning"
+                        onClick={() =>
+                          setPayments((prev) =>
+                            prev.map((p) =>
+                              p.paymentId === payment.paymentId
+                                ? { ...p, status: "Pending" }
+                                : p
+                            )
+                          )
+                        }
+                      >
+                        {t("set_to_pending")}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })
           ) : (
             <tr>
-              <td colSpan="11" className="no-results">No payments found.</td>
+              <td colSpan="7" className="no-results">
+                {t("no_payments_found")}
+              </td>
             </tr>
           )}
         </tbody>
       </table>
+
+      {/* Payment Modal */}
+      <Modal show={showModal} onHide={handleCloseModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{t("select_payment_method")}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>{t("choose_method_to_pay")}</p>
+          <div className="d-flex justify-content-around mt-4">
+            <Button variant="success" onClick={() => handlePaymentMethod("cash")}>
+              💵 {t("pay_cash")}
+            </Button>
+            <Button variant="primary" onClick={() => handlePaymentMethod("visa")}>
+              💳 {t("pay_visa")}
+            </Button>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };

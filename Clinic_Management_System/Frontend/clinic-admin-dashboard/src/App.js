@@ -1,5 +1,4 @@
-// App.js
-import React, { useState, createContext, useContext } from "react";
+import React, { useState, createContext, useContext, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
@@ -12,8 +11,9 @@ import Login from "./pages/Login";
 import "./App.css";
 import AddPatient from "./pages/AddPatient";
 import Payments from "./pages/Payments";
-import AddAppoinment from "./pages/AddAppoiment";
-
+import { NotificationProvider } from "./components/NotificationContext";
+import { useTranslation } from "react-i18next";
+import AddAppointment from "./pages/AddAppoiment";
 
 // ✅ Role Context
 const RoleContext = createContext();
@@ -26,6 +26,20 @@ export const useRole = () => useContext(RoleContext);
 const App = () => {
   const { role, setRole } = useRole();
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
+
+  // ✅ Update direction based on language
+  useEffect(() => {
+    if (i18n.language === "ar") {
+      document.body.classList.add("rtl");
+    } else {
+      document.body.classList.remove("rtl");
+    }
+  }, [i18n.language]);
+
+  const toggleLanguage = () => {
+    i18n.changeLanguage(i18n.language === "en" ? "ar" : "en");
+  };
 
   // ✅ Patients State
   const [patients, setPatients] = useState([
@@ -33,19 +47,36 @@ const App = () => {
     { id: 2, name: "Jane Smith", mobile: "987-654-3210" }
   ]);
 
-  // ✅ Appointments State (Updated to include only the two patients)
+  // ✅ Function to add a new patient
+  const addPatient = (newPatient) => {
+    setPatients([...patients, { ...newPatient, id: Date.now() }]);
+  };
+
+  // ✅ Function to update an existing patient
+  const updatePatient = (updatedPatient) => {
+    setPatients(patients.map(patient =>
+      patient.id === updatedPatient.id ? updatedPatient : patient
+    ));
+  };
+
+  // ✅ Function to delete a patient
+  const deletePatient = (id) => {
+    setPatients(patients.filter(patient => patient.id !== id));
+    // Optionally, also remove associated appointments and payments
+    setAppointments(appointments.filter(appointment => appointment.patientId !== id));
+    setPayments(payments.filter(payment => payment.patientId !== id));
+  };
+
   const [appointments, setAppointments] = useState([
-    { id: 1, turn: 1, date: "2025-03-01", clinicName: "مصر الجديدة", type: "كشف",dayOfWeek: "Saturday", cancelled: false, success: false,patientId:1 ,patientName: "John Doe" },
-    { id: 2, turn: 2, date: "2025-03-01", clinicName: "مصر الجديدة", type: "كشف",dayOfWeek: "Saturday", cancelled: false, success: false,patientId:2, patientName: "Jane Smith" },
-    { id: 3, turn: 1, date: "2025-03-02", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false,patientId:1 ,patientName: "John Doe" },
-    { id: 4, turn: 2, date: "2025-03-02", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
-    { id: 5, turn: 2, date: "2024-03-02", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
-    { id: 6, turn: 2, date: "2025-03-03", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
-    { id: 7, turn: 1, date: "2025-04-10", clinicName: "مصر الجديدة", type: "كشف", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:1,patientName: "John Doe" },
-    { id: 8, turn: 2, date: "2025-04-10", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" },
-    { id: 9, turn: "3", date: "2025-04-10", clinicName: "مصر الجديدة", type: "استشارة", dayOfWeek: "Sunday", cancelled: false, success: false, patientId:2,patientName: "Jane Smith" }
+    { id: 1, turn: 1, date: "2025-03-01", clinicName: "مصر الجديدة", type: "كشف", dayOfWeek: "Saturday", cancelled: false, success: false, patientId: 1, patientName: "John Doe" },
   ]);
-  const payments = [
+
+  // ✅ Function to add a new appointment
+  const addAppointment = (newAppointment) => {
+    setAppointments([...appointments, { ...newAppointment, id: Date.now() }]);
+  };
+
+  const [payments, setPayments] = useState([
     {
       paymentId: 1,
       patientId: 1,
@@ -56,68 +87,96 @@ const App = () => {
       turn: 1,
       type: 'كشف',
       clinic: 'مطرية',
-      status: 'Paid', // or 'Pending', 'Failed', etc.
-    },
-    // More payments
-  ];
-  
+      status: 'Paid',
+    }
+  ]);
 
-  // ✅ Handle Logout
+  // ✅ Function to add a new payment
+  const addPayment = (newPayment) => {
+    setPayments([...payments, { ...newPayment, paymentId: Date.now() }]);
+  };
+
+  // ✅ Function to update an existing payment
+  const updatePayment = (updatedPayment) => {
+    setPayments(payments.map(payment =>
+      payment.paymentId === updatedPayment.paymentId ? updatedPayment : payment
+    ));
+  };
+
+  // ✅ Function to delete a payment
+  const deletePayment = (id) => {
+    setPayments(payments.filter(payment => payment.paymentId !== id));
+  };
+
   const handleLogout = () => {
     setRole("");
     navigate("/login", { replace: true });
   };
 
   return (
-    <div className="app">
-    {role && <Sidebar />}
-    <div className="content">
-      {role && <div className="navbar"><Navbar onLogout={handleLogout} /></div>}
+    <NotificationProvider>
+      <div className="app">
+        {role && <Sidebar />}
+        <div className="content">
+          {role && <div className="navbar"><Navbar onLogout={handleLogout} toggleLanguage={toggleLanguage} /></div>}
 
-      <div className="scrollable-content">
-        <Routes>
-          <Route
-            path="/"
-            element={role === "admin"
-              ? <Dashboard appointments={appointments} setAppointments={setAppointments} patients={patients} />
-              : role === "receptionist"
-              ? <Patients patients={patients} setPatients={setPatients} />
-              : <Navigate to="/login" />}
-          />
-          <Route
-            path="/patients"
-            element={role ? <Patients patients={patients} setPatients={setPatients} /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/patients/:id"
-            element={role ? <Profile patients={patients} appointments={appointments} setAppointments={setAppointments} /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/add-patient/:id?"
-            element={role ? <AddPatient patients={patients} setPatients={setPatients} /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/appointments"
-            element={role === "admin" ? <Appointments appointments={appointments} setAppointments={setAppointments} /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/settings"
-            element={role === "admin" ? <Settings /> : <Navigate to="/login" />}
-          />
-          
-           <Route
-            path="/add-appointment/:id"
-            element={role === "admin" ? <AddAppoinment patients={patients} appointments={appointments} setAppointments={setAppointments} /> : <Navigate to="/login" />}
-          />
-        <Route
-  path="/payments"
-  element={role === "admin" ? <Payments payments={payments} appointments={appointments} /> : <Navigate to="/login" />}
-/>
-          <Route path="/login" element={<Login />} />
-        </Routes>
+          <div className="scrollable-content">
+            <Routes>
+              <Route
+                path="/"
+                element={role === "admin"
+                  ? <Dashboard appointments={appointments} setAppointments={setAppointments} patients={patients} />
+                  : role === "receptionist"
+                    ? <Dashboard appointments={appointments} setAppointments={setAppointments} patients={patients} />
+                    : <Navigate to="/login" />}
+              />
+              <Route
+                path="/patients"
+                element={role === "receptionist" || role === "admin"
+                  ? <Patients patients={patients} setPatients={setPatients} onDeletePatient={deletePatient} />
+                  : <Navigate to="/login" />}
+              />
+              <Route
+                path="/patients/:id"
+                element={role === "receptionist" || role === "admin"
+                  ? <Profile patients={patients} appointments={appointments} />
+                  : <Navigate to="/login" />}
+              />
+              <Route
+                path="/add-patient/:id?"
+                element={role === "receptionist" || role === "admin"
+                  ? <AddPatient patients={patients} setPatients={setPatients} onAddPatient={addPatient} onUpdatePatient={updatePatient} />
+                  : <Navigate to="/login" />}
+              />
+              <Route
+                path="/appointments"
+                element={role === "receptionist" || role === "admin"
+                  ? <Appointments appointments={appointments} setAppointments={setAppointments}   payments={payments} />
+                  : <Navigate to="/login" />}
+              />
+
+              <Route
+                path="/settings"
+                element={role === "admin" ? <Settings /> : <Navigate to="/login" />}
+              />
+              <Route
+                path="/add-appointment/:id"
+                element={role === "receptionist" || role === "admin"
+                  ? <AddAppointment patients={patients} appointments={appointments} onAddAppointment={addAppointment} setPayments={setPayments} />
+                  : <Navigate to="/login" />}
+              />
+              <Route
+                path="/payments"
+                element={role === "receptionist" || role === "admin"
+                  ? <Payments patients={patients} payments={payments} onAddPayment={addPayment} onUpdatePayment={updatePayment} onDeletePayment={deletePayment} />
+                  : <Navigate to="/login" />}
+              />
+              <Route path="/login" element={<Login onLogin={(selectedRole) => setRole(selectedRole)} />} />
+            </Routes>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
+    </NotificationProvider>
   );
 };
 

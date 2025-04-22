@@ -1,4 +1,3 @@
-// Dashboard.js
 import React, { useState } from "react";
 import {
   FaUserMd,
@@ -17,23 +16,30 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import "../styles/Dashboard.css";
+import { useTranslation } from "react-i18next";
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-
 const Dashboard = ({ appointments, setAppointments, patients }) => {
+  const { t } = useTranslation();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const todayDate = new Date().toISOString().split("T")[0];
+
   const todaysAppointments = appointments.filter(app => app.date === todayDate);
   const pendingAppointments = todaysAppointments.filter(app => !app.success);
   const successfulAppointments = todaysAppointments.filter(app => app.success);
+
   const pendingExaminations = pendingAppointments.filter(app => app.type === "كشف");
   const pendingConsultations = pendingAppointments.filter(app => app.type === "استشارة");
+
   const successfulExaminations = successfulAppointments.filter(app => app.type === "كشف");
   const successfulConsultations = successfulAppointments.filter(app => app.type === "استشارة");
+
   const appointmentData = months.map((month, index) => {
-    const monthAppointments = appointments.filter(app => {const date = new Date(app.date);
-      return date.getFullYear() === selectedYear && date.getMonth() === index;});
+    const monthAppointments = appointments.filter(app => {
+      const date = new Date(app.date);
+      return date.getFullYear() === selectedYear && date.getMonth() === index;
+    });
 
     return {
       day: month,
@@ -44,6 +50,7 @@ const Dashboard = ({ appointments, setAppointments, patients }) => {
   const handleYearChange = (e) => {
     setSelectedYear(Number(e.target.value));
   };
+
   const markAsCompleted = (id) => {
     setAppointments((prevAppointments) =>
       prevAppointments.map((appt) =>
@@ -51,88 +58,89 @@ const Dashboard = ({ appointments, setAppointments, patients }) => {
       )
     );
   };
+
   return (
     <div className="dashboard">
-      <h1>Control Panel</h1>
+      <h1>{t("control_panel")}</h1>
 
       <div className="stats-grid">
         <div className="stat-card">
           <FaUserMd className="stat-icon" />
           <div>
-            <p>Total Patients</p>
+            <p>{t("total_patients")}</p>
             <h3>{patients.length}</h3>
           </div>
         </div>
         <div className="stat-card">
           <FaCalendarCheck className="stat-icon" />
           <div>
-            <p>All Examinations</p>
+            <p>{t("all_examinations")}</p>
             <h3>{appointments.filter(app => app.type === "كشف").length}</h3>
           </div>
         </div>
         <div className="stat-card">
           <FaCalendarCheck className="stat-icon" />
           <div>
-            <p>All Consultations</p>
+            <p>{t("all_consultations")}</p>
             <h3>{appointments.filter(app => app.type === "استشارة").length}</h3>
           </div>
         </div>
         <div className="stat-card">
           <FaDollarSign className="stat-icon" />
           <div>
-            <p>Total Income</p>
+            <p>{t("total_income")}</p>
             <h3>{appointments.filter(app => app.type === "كشف" && app.success).length * 300}</h3>
           </div>
         </div>
       </div>
 
-      <h1>Today's Statistics</h1>
+      <h1>{t("today_statistics")}</h1>
       <div className="stats-grid">
         <div className="stat-card">
           <FaClock className="stat-icon" />
           <div>
-            <p>Pending Appointments</p>
+            <p>{t("pending_appointments")}</p>
             <h3>{pendingAppointments.length}</h3>
           </div>
         </div>
         <div className="stat-card">
           <FaClock className="stat-icon" />
           <div>
-            <p>Pending Examinations</p>
+            <p>{t("pending_examinations")}</p>
             <h3>{pendingExaminations.length}</h3>
           </div>
         </div>
         <div className="stat-card">
           <FaClock className="stat-icon" />
           <div>
-            <p>Pending Consultations</p>
+            <p>{t("pending_consultations")}</p>
             <h3>{pendingConsultations.length}</h3>
           </div>
         </div>
         <div className="stat-card">
           <FaCheckCircle className="stat-icon" />
           <div>
-            <p>Successful Appointments</p>
+            <p>{t("successful_appointments")}</p>
             <h3>{successfulAppointments.length}</h3>
           </div>
         </div>
         <div className="stat-card">
           <FaCheckCircle className="stat-icon" />
           <div>
-            <p>Successful Examinations</p>
+            <p>{t("successful_examinations")}</p>
             <h3>{successfulExaminations.length}</h3>
           </div>
         </div>
         <div className="stat-card">
           <FaCheckCircle className="stat-icon" />
           <div>
-            <p>Successful Consultations</p>
+            <p>{t("successful_consultations")}</p>
             <h3>{successfulConsultations.length}</h3>
           </div>
         </div>
       </div>
 
-      <h2>Today's Pending Appointments</h2>
+      <h2>{t("todays_pending_appointments")}</h2>
       <div id="carouselExampleControls" className="carousel slide" data-bs-ride="carousel">
         <div className="carousel-inner">
           {pendingAppointments.length > 0 ? (
@@ -140,15 +148,16 @@ const Dashboard = ({ appointments, setAppointments, patients }) => {
               <div className={`carousel-item ${index === 0 ? 'active' : ''}`} key={app.id}>
                 <div className="carousel-item-content">
                   <p><strong>{app.patientName}</strong></p>
-                  <p>Turn: {app.turn}</p>
-                  {/* Add other appointment details you want to display */}
-                  <button className="complete-btn" onClick={() => markAsCompleted(app.id)}>Completed</button>
+                  <p>{t("turn")}: {app.turn}</p>
+                  <button className="complete-btn" onClick={() => markAsCompleted(app.id)}>
+                    {t("completed")}
+                  </button>
                 </div>
               </div>
             ))
           ) : (
             <div className="carousel-item active">
-              <p>No pending appointments for today.</p>
+              <p>{t("no_pending_appointments")}</p>
             </div>
           )}
         </div>
@@ -178,8 +187,8 @@ const Dashboard = ({ appointments, setAppointments, patients }) => {
 
       <div className="charts-container">
         <div className="chart-card">
-          <h3>Monthly Appointment Trends</h3>
-          <label>Select Year:</label>
+          <h3>{t("monthly_trends")}</h3>
+          <label>{t("select_year")}:</label>
           <select value={selectedYear} onChange={handleYearChange}>
             <option value="2025">2025</option>
             <option value="2024">2024</option>

@@ -1,10 +1,12 @@
 // Profile.js
 import React from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { FaWhatsapp, FaPlusCircle } from "react-icons/fa";
+import { FaWhatsapp } from "react-icons/fa";
 import "../styles/Profile.css";
+import { useTranslation } from "react-i18next"; // Assuming this is setup
 
 const Profile = ({ patients, appointments, setAppointments }) => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const patientId = Number(id);
@@ -13,20 +15,18 @@ const Profile = ({ patients, appointments, setAppointments }) => {
   if (!patient) {
     return (
       <div className="profile-container">
-        <h2>Patient Not Found</h2>
+        <h2>{t("patients")} {t("not_found") || "Not Found"}</h2>
         <button className="back-button" onClick={() => navigate("/patients")}>
-          Back to Patients
+          {t("backToPatients") || "Back to Patients"}
         </button>
       </div>
     );
   }
 
-  // Filter Appointments for this Patient
   const patientAppointments = appointments.filter(
     (appointment) => appointment.patientId === patientId
   );
 
-  // Update Appointment Status
   const markAsCompleted = (id) => {
     setAppointments((prevAppointments) =>
       prevAppointments.map((appt) =>
@@ -43,28 +43,24 @@ const Profile = ({ patients, appointments, setAppointments }) => {
     );
   };
 
-  const handleMakeNewAppointment = () => {
-    navigate(`/add-appointment?patientId=${patientId}`); // Pass patientId
-  };
+ 
 
-  // WhatsApp Web Click to Chat URL
   const whatsappMessage = encodeURIComponent(`Hello ${patient.name}, welcome to our clinic!`);
   const whatsappUrl = `https://web.whatsapp.com/send?phone=${patient.mobile.replace(/[^0-9]/g, "")}&text=${whatsappMessage}`;
 
   return (
     <div className="profile-container">
-      <h2 className="profile-title">Patient Profile</h2>
+      <h2 className="profile-title">{t("profile")}</h2>
 
-      {/* Personal Information Table */}
-      <h3>Personal Information</h3>
+      <h3>{t("personal_information") || "Personal Information"}</h3>
       <table className="personal-info-table">
         <tbody>
           <tr>
-            <th>Name</th>
+            <th>{t("name")}</th>
             <td>{patient.name}</td>
           </tr>
           <tr>
-            <th>Mobile</th>
+            <th>{t("mobile")}</th>
             <td>
               {patient.mobile}{" "}
               <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="whatsapp-icon">
@@ -75,27 +71,27 @@ const Profile = ({ patients, appointments, setAppointments }) => {
         </tbody>
       </table>
 
-      <h3>Appointments</h3>
+      <h3>{t("appointments")}</h3>
       {patientAppointments.length > 0 ? (
         <table className="appointments-table">
           <thead>
             <tr>
-              <th>Turn</th>
-              <th>Date</th>
-              <th>Clinic</th>
-              <th>Type</th>
-              <th>Day</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>{t("turn")}</th>
+              <th>{t("date") || "Date"}</th>
+              <th>{t("clinic") || "Clinic"}</th>
+              <th>{t("type") || "Type"}</th>
+              <th>{t("day") || "Day"}</th>
+              <th>{t("status") || "Status"}</th>
+              <th>{t("actions")}</th>
             </tr>
           </thead>
           <tbody>
             {patientAppointments.map((appointment) => {
-              let status = "Pending";
+              let status = t("pending_appointments");
               if (appointment.cancelled) {
-                status = "Cancelled";
+                status = t("cancelled") || "Cancelled";
               } else if (appointment.success) {
-                status = "Completed";
+                status = t("completed");
               }
 
               return (
@@ -109,8 +105,12 @@ const Profile = ({ patients, appointments, setAppointments }) => {
                   <td>
                     {!appointment.cancelled && !appointment.success && (
                       <>
-                        <button className="complete-btn" onClick={() => markAsCompleted(appointment.id)}>Completed</button>
-                        <button className="cancel-btn" onClick={() => cancelAppointment(appointment.id)}>Cancel</button>
+                        <button className="complete-btn" onClick={() => markAsCompleted(appointment.id)}>
+                          {t("completed")}
+                        </button>
+                        <button className="cancel-btn" onClick={() => cancelAppointment(appointment.id)}>
+                          {t("cancel")}
+                        </button>
                       </>
                     )}
                   </td>
@@ -120,19 +120,16 @@ const Profile = ({ patients, appointments, setAppointments }) => {
           </tbody>
         </table>
       ) : (
-        <p>No appointments found for this patient.</p>
+        <p>{t("noAppointments") || "No appointments found for this patient."}</p>
       )}
 
-      {/* Make New Appointment Button */}
-      <button className="make-appointment-btn" onClick={handleMakeNewAppointment}>
-        <FaPlusCircle className="plus-icon" /> Make New Appointment
-      </button>
+
       <Link to={`/add-appointment/${patient.id}`}>
-  <button className="add-btn">Add New Appointment</button>
-</Link>
+        <button className="add-btn">{t("addNewAppointment") || "Add New Appointment"}</button>
+      </Link>
 
       <button className="back-button" onClick={() => navigate("/patients")}>
-        Back to Patients
+        {t("backToPatients") || "Back to Patients"}
       </button>
     </div>
   );
