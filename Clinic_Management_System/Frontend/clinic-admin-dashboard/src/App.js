@@ -14,6 +14,7 @@ import Payments from "./pages/Payments";
 import { NotificationProvider } from "./components/NotificationContext";
 import { useTranslation } from "react-i18next";
 import AddAppointment from "./pages/AddAppoiment";
+import axios from "axios";
 
 // ✅ Role Context
 const RoleContext = createContext();
@@ -42,10 +43,23 @@ const App = () => {
   };
 
   // ✅ Patients State
-  const [patients, setPatients] = useState([
-    { id: 1, name: "John Doe", mobile: "123-456-7890" },
-    { id: 2, name: "Jane Smith", mobile: "987-654-3210" }
-  ]);
+  const [patients, setPatients] = useState([]);
+
+  // ✅ Fetch patients from API when the app loads
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/api/patients/");
+        if (response.data.status === "success") {
+          setPatients(response.data.data); // Use the 'data' field from the API response
+        }
+      } catch (error) {
+        console.error("Failed to fetch patients:", error);
+      }
+    };
+
+    fetchPatients();
+  }, []);
 
   // ✅ Function to add a new patient
   const addPatient = (newPatient) => {
@@ -170,7 +184,7 @@ const App = () => {
                 element={role === "receptionist" || role === "admin"
                   ? <Payments patients={patients}  setPayments={setPayments} payments={payments} onAddPayment={addPayment} onUpdatePayment={updatePayment} onDeletePayment={deletePayment} />
                   : <Navigate to="/login" />}
-              />
+              /> 
               <Route path="/login" element={<Login onLogin={(selectedRole) => setRole(selectedRole)} />} />
             </Routes>
           </div>

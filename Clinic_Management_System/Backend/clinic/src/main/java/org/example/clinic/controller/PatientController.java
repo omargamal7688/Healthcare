@@ -6,18 +6,20 @@ import org.example.clinic.dto.PatientDTO;
 import org.example.clinic.services.PatientService;
 import org.example.clinic.utils.PatientMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.example.clinic.model.Patient;
 
 @RestController
-@RequestMapping("/api/patients")
+@RequestMapping("/admin/api/patients")
 @CrossOrigin(origins = "http://localhost:3000")
 public class PatientController {
 
@@ -31,8 +33,21 @@ public class PatientController {
 
  //API to return list of all patients
  @GetMapping("/")
- public List<PatientDTO> getAllPatients() {
-  return patientService.getAllPatients();}
+ public ResponseEntity<Map<String, Object>> getAllPatients(
+         @RequestParam(defaultValue = "0") int page,
+         @RequestParam(defaultValue = "11") int size) {
+
+  Pageable pageable = PageRequest.of(page, size);
+  Page<PatientDTO> pagePatients = patientService.getAllPatients(pageable);
+
+  Map<String, Object> response = new HashMap<>();
+  response.put("status", "success");
+  response.put("data", pagePatients.getContent());
+  response.put("total", pagePatients.getTotalElements());
+
+  return ResponseEntity.ok(response);
+ }
+
 //******************************************************************************************************
 
 //API to insert new patient or update current patient using id
